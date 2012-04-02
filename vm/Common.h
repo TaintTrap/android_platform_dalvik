@@ -47,7 +47,7 @@
  * Define this above the #include "Dalvik.h" to enable for only a
  * single file.
  */
-/* #define VERY_VERBOSE_LOG */
+#define VERY_VERBOSE_LOG
 #if defined(VERY_VERBOSE_LOG)
 # define LOGVV      LOGV
 # define IF_LOGVV() IF_LOGV()

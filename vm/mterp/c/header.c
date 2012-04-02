@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// VALI
+#define LOG_NDEBUG 0
+
 /* common includes */
 #include "Dalvik.h"
 #include "interp/InterpDefs.h"
@@ -69,7 +72,7 @@
 # define NO_UNALIGN_64__MEMCPY
 #endif
 
-//#define LOG_INSTR                   /* verbose debugging */
+#define LOG_INSTR                   /* verbose debugging */
 /* set and adjust ANDROID_LOG_TAGS='*:i jdwp:i dalvikvm:i dalvikvmi:i' */
 
 /*
@@ -411,15 +414,15 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 
 #ifdef WITH_TAINT_TRACKING
 /* Core get and set macros */
-# define GET_REGISTER_TAINT(_idx)	     (fp[((_idx)<<1)+1])
-# define SET_REGISTER_TAINT(_idx, _val)	     (fp[((_idx)<<1)+1] = (u4)(_val))
+# define GET_REGISTER_TAINT(_idx)      (fp[((_idx)<<1)+1])
+# define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val))
 # define GET_REGISTER_TAINT_WIDE(_idx)       (fp[((_idx)<<1)+1])
 # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
-	                                      fp[((_idx)<<1)+3] = (u4)(_val))
+                                        fp[((_idx)<<1)+3] = (u4)(_val))
 /* Alternate interfaces to help dereference register width */
-# define GET_REGISTER_TAINT_INT(_idx)	          GET_REGISTER_TAINT(_idx)
+# define GET_REGISTER_TAINT_INT(_idx)           GET_REGISTER_TAINT(_idx)
 # define SET_REGISTER_TAINT_INT(_idx, _val)       SET_REGISTER_TAINT(_idx, _val)
-# define GET_REGISTER_TAINT_FLOAT(_idx)	          GET_REGISTER_TAINT(_idx)
+# define GET_REGISTER_TAINT_FLOAT(_idx)           GET_REGISTER_TAINT(_idx)
 # define SET_REGISTER_TAINT_FLOAT(_idx, _val)     SET_REGISTER_TAINT(_idx, _val)
 # define GET_REGISTER_TAINT_DOUBLE(_idx)          GET_REGISTER_TAINT_WIDE(_idx)
 # define SET_REGISTER_TAINT_DOUBLE(_idx, _val)    SET_REGISTER_TAINT_WIDE(_idx, _val)
@@ -427,27 +430,27 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val) SET_REGISTER_TAINT(_idx, _val)
 
 /* Object Taint interface */
-# define GET_ARRAY_TAINT(_arr)		      ((_arr)->taint.tag)
-# define SET_ARRAY_TAINT(_arr, _val)	      ((_arr)->taint.tag = (u4)(_val))
+# define GET_ARRAY_TAINT(_arr)          ((_arr)->taint.tag)
+# define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val))
 
 /* Return value taint (assumes rtaint variable is in scope */
-# define GET_RETURN_TAINT()		      (rtaint.tag)
-# define SET_RETURN_TAINT(_val)		      (rtaint.tag = (u4)(_val))
+# define GET_RETURN_TAINT()         (rtaint.tag)
+# define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val))
 #else
-# define GET_REGISTER_TAINT(_idx)		    ((void)0)
-# define SET_REGISTER_TAINT(_idx, _val)		    ((void)0)
-# define GET_REGISTER_TAINT_WIDE(_idx)		    ((void)0)
-# define SET_REGISTER_TAINT_WIDE(_idx, _val)	    ((void)0)
-# define GET_REGISTER_TAINT_INT(_idx)		    ((void)0)
-# define SET_REGISTER_TAINT_INT(_idx, _val)	    ((void)0)
-# define GET_REGISTER_TAINT_DOUBLE(_idx)	    ((void)0)
-# define SET_REGISTER_TAINT_DOUBLE(_idx, _val)	    ((void)0)
-# define GET_REGISTER_TAINT_AS_OBJECT(_idx)	    ((void)0)
+# define GET_REGISTER_TAINT(_idx)       ((void)0)
+# define SET_REGISTER_TAINT(_idx, _val)       ((void)0)
+# define GET_REGISTER_TAINT_WIDE(_idx)        ((void)0)
+# define SET_REGISTER_TAINT_WIDE(_idx, _val)      ((void)0)
+# define GET_REGISTER_TAINT_INT(_idx)       ((void)0)
+# define SET_REGISTER_TAINT_INT(_idx, _val)     ((void)0)
+# define GET_REGISTER_TAINT_DOUBLE(_idx)      ((void)0)
+# define SET_REGISTER_TAINT_DOUBLE(_idx, _val)      ((void)0)
+# define GET_REGISTER_TAINT_AS_OBJECT(_idx)     ((void)0)
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val)   ((void)0)
 # define GET_ARRAY_TAINT(_field)                    ((void)0)
 # define SET_ARRAY_TAINT(_field, _val)              ((void)0)
-# define GET_RETURN_TAINT()			    ((void)0)
-# define SET_RETURN_TAINT(_val)			    ((void)0)
+# define GET_RETURN_TAINT()         ((void)0)
+# define SET_RETURN_TAINT(_val)         ((void)0)
 #endif
 
 /*

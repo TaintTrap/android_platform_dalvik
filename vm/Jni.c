@@ -836,9 +836,10 @@ static jobject addGlobalReference(Object* obj)
     }
     jobj = (jobject) obj;
 
-    LOGVV("GREF add %p  (%s.%s)\n", obj,
-        dvmGetCurrentJNIMethod()->clazz->descriptor,
-        dvmGetCurrentJNIMethod()->name);
+    // VALI
+    /* LOGVV("GREF add %p  (%s.%s)\n", obj, */
+    /*     dvmGetCurrentJNIMethod()->clazz->descriptor, */
+    /*     dvmGetCurrentJNIMethod()->name); */
 
     /* GREF usage tracking; should probably be disabled for production env */
     if (kTrackGrefUsage && gDvm.jniGrefLimit != 0) {
@@ -1179,12 +1180,12 @@ static bool findInArgList(Thread* self, Object* obj)
         if (i == 0 && !dvmIsStaticMethod(meth)) {
             /* first arg is "this" ref, not represented in "shorty" */
             if (fp[i] == (u4) obj)
-            	return true;
+              return true;
         } else {
             /* if this is a reference type, see if it matches */
             switch (*shorty) {
             case 'L':
-            	if (fp[i] == (u4) obj)
+              if (fp[i] == (u4) obj)
                     return true;
                 break;
             case 'D':
@@ -1196,7 +1197,7 @@ static bool findInArgList(Thread* self, Object* obj)
                     meth->shorty, meth->insSize);
                 break;
             default:
-            	if (fp[i] == (u4) obj)
+              if (fp[i] == (u4) obj)
                     LOGI("NOTE: ref %p match on arg type %c\n", obj, *shorty);
                 break;
             }

@@ -246,8 +246,9 @@ static int processZipFile(int zipFd, int cacheFd, const char* zipName,
         int matchOffset = match - bcp;
         if (matchOffset > 0 && bcp[matchOffset-1] == ':')
             matchOffset--;
-        LOGV("DexOptZ: found '%s' in bootclasspath, cutting off at %d\n",
-            inputFileName, matchOffset);
+        // VALI
+        /* LOGV("DexOptZ: found '%s' in bootclasspath, cutting off at %d\n", */
+        /*     inputFileName, matchOffset); */
         bcpCopy = strdup(bcp);
         bcpCopy[matchOffset] = '\0';
 
@@ -526,6 +527,10 @@ static int fromDex(int argc, char* const argv[])
         dexOptMode = OPTIMIZE_MODE_NONE;
     }
 #endif
+
+    // VALI FORCE
+    LOGD("DexOpt extractAndProcessZip() forcing OPTIMIZE_MODE_ALL\n");
+    dexOptMode = OPTIMIZE_MODE_ALL;
 
     if (dvmPrepForDexOpt(bootClassPath, dexOptMode, verifyMode, flags) != 0) {
         LOGE("VM init failed\n");

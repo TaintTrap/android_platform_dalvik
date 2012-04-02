@@ -480,8 +480,9 @@ bool dvmContinueOptimization(int fd, off_t dexOffset, long dexLength,
 
     assert(gDvm.optimizing);
 
-    LOGV("Continuing optimization (%s, isb=%d, vfy=%d, opt=%d)\n",
-        fileName, isBootstrap, doVerify, doOpt);
+    // VALI
+    /* LOGV("Continuing optimization (%s, isb=%d, vfy=%d, opt=%d)\n", */
+    /*     fileName, isBootstrap, doVerify, doOpt); */
 
     assert(dexOffset >= 0);
 

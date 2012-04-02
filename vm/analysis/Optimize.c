@@ -969,8 +969,9 @@ Method* dvmOptResolveInterfaceMethod(ClassObject* referrer, u4 methodIdx)
         DexProto proto;
         dexProtoSetFromMethodId(&proto, pDvmDex->pDexFile, pMethodId);
 
-        LOGVV("+++ looking for '%s' '%s' in resClass='%s'\n",
-            methodName, methodSig, resClass->descriptor);
+        // VALI
+        /* LOGVV("+++ looking for '%s' '%s' in resClass='%s'\n", */
+        /*     methodName, methodSig, resClass->descriptor); */
         resMethod = dvmFindVirtualMethod(resClass, methodName, &proto);
         if (resMethod == NULL) {
             /* scan superinterfaces and superclass interfaces */

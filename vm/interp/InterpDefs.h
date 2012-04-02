@@ -24,6 +24,9 @@
 #ifndef _DALVIK_INTERP_DEFS
 #define _DALVIK_INTERP_DEFS
 
+// VALI
+#define LOG_INSTR
+
 #ifdef WITH_TAINT_TRACKING
 #include "interp/Taint.h"
 #endif
