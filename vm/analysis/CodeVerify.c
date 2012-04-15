@@ -3526,6 +3526,10 @@ static bool verifyInstruction(const Method* meth, InsnFlags* insnFlags,
     }
 
     switch (decInsn.opCode) {
+    case OP_MARKER:             /* VALI */
+    case OP_IF_MARKER:          /* VALI */
+    case OP_IPD_MARKER:         /* VALI */
+        break;
     case OP_NOP:
         /*
          * A "pure" NOP has no effect on anything.  Data tables start with
@@ -5453,8 +5457,8 @@ sput_1nr_common:
         break;
 
     /* these should never appear during verification */
-    case OP_UNUSED_3E:
-    case OP_UNUSED_3F:
+    /* case OP_UNUSED_3E: */
+    /* case OP_UNUSED_3F: */
     case OP_UNUSED_40:
     case OP_UNUSED_41:
     case OP_UNUSED_42:
@@ -5464,7 +5468,7 @@ sput_1nr_common:
     case OP_UNUSED_7A:
     case OP_BREAKPOINT:
     case OP_UNUSED_F1:
-    case OP_UNUSED_FF:
+    /* case OP_UNUSED_FF: */
         failure = VERIFY_ERROR_GENERIC;
         break;
 

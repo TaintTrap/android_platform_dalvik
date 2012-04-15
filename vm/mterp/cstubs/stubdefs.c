@@ -37,6 +37,10 @@
 
 #ifdef WITH_TAINT_TRACKING
 #define rtaint			glue->rtaint
+/* #define implicitTaintMode		glue->implicitTaintMode */
+/* #define implicitTaintTag		glue->implicitTaintTag */
+#define implicitTaintMode		false /* FIXME */
+#define implicitTaintTag		TAINT_CLEAR /* FIXME */
 #endif
 
 /* ugh */

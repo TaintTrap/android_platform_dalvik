@@ -112,6 +112,7 @@ GOTO_TARGET_DECL(exceptionThrown);
     HANDLE_OPCODE(_opcode /*vA, vB, +CCCC*/)                                \
         vsrc1 = INST_A(inst);                                               \
         vsrc2 = INST_B(inst);                                               \
+        IMPLICIT_BRANCH_TAINT(GET_REGISTER_TAINT(vsrc1) | GET_REGISTER_TAINT(vsrc2)); \
         if ((s4) GET_REGISTER(vsrc1) _cmp (s4) GET_REGISTER(vsrc2)) {       \
             int branchOffset = (s2)FETCH(1);    /* sign-extended */         \
             ILOGV("|if-%s v%d,v%d,+0x%04x", (_opname), vsrc1, vsrc2,        \
@@ -128,6 +129,7 @@ GOTO_TARGET_DECL(exceptionThrown);
 #define HANDLE_OP_IF_XXZ(_opcode, _opname, _cmp)                            \
     HANDLE_OPCODE(_opcode /*vAA, +BBBB*/)                                   \
         vsrc1 = INST_AA(inst);                                              \
+    IMPLICIT_BRANCH_TAINT(GET_REGISTER_TAINT(vsrc1));                          \
         if ((s4) GET_REGISTER(vsrc1) _cmp 0) {                              \
             int branchOffset = (s2)FETCH(1);    /* sign-extended */         \
             ILOGV("|if-%s v%d,+0x%04x", (_opname), vsrc1, branchOffset);    \

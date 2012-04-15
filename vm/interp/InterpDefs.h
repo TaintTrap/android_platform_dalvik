@@ -117,6 +117,8 @@ typedef struct InterpState {
     JValue      retval;                 // return value -- "out" only
 #ifdef WITH_TAINT_TRACKING
     Taint       rtaint;			// return taint value
+    /* bool implicitTaintMode; // taint Mode enabled? */
+    /* u4   implicitTaintTag; // global implicit taint tag to apply */
 #endif /* WITH_TAINT_TRACKING */
     const Method* method;               // method being executed
 

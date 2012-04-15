@@ -615,6 +615,12 @@ struct Method {
 
     /* set if method was called during method profiling */
     bool            inProfile;
+
+#ifdef WITH_TAINT_TRACKING
+#define SCOPE_TAINT_MAX_STACK 16
+    s4 scopeIdx;
+    u4 scopeTaint[SCOPE_TAINT_MAX_STACK];
+#endif /* WITH_TAINT_TRACKING */
 };
 
 

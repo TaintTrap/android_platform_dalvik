@@ -103,8 +103,10 @@ static const char* gOpNames[256] = {
     "if-gez",
     "if-gtz",
     "if-lez",
-    "UNUSED",
-    "UNUSED",
+    /* "UNUSED", */
+    /* "UNUSED", */
+    "if-marker",
+    "ipd-marker",
 
     /* 0x40 */
     "UNUSED",
@@ -320,7 +322,8 @@ static const char* gOpNames[256] = {
     "+iput-object-volatile",
     "+sget-object-volatile",
     "+sput-object-volatile",
-    "UNUSED",
+    /* "UNUSED", */
+    "marker",
 };
 
 /*

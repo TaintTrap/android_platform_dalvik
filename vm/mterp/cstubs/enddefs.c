@@ -10,4 +10,6 @@
 
 #ifdef WITH_TAINT_TRACKING
 #undef rtaint
+/* #undef implicitTaintMode */
+/* #undef implicitTaintTag */
 #endif

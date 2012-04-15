@@ -22,7 +22,20 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
 #endif
 
     /* core state */
-    const Method* curMethod;    // method we're interpreting
+    /* const Method* curMethod;    // method we're interpreting */
+    // VALI removed const in order to make changes
+    Method* curMethod;          // method we're interpreting
+
+    // TODO add a WITH_IMPLICIT_TAINT_TRACKING guard instead
+#ifdef WITH_TAINT_TRACKING
+    /* bool implicitTaintMode    = interpState->implicitTaintMode; */
+    bool implicitTaintMode    = false; /* FIXME */
+    /* u4   implicitTaintTag     = interpState->implicitTaintTag; */
+    u4   implicitTaintTag     = TAINT_CLEAR;  /* FIXME */
+    bool implicitTaintAllowed = false;       // tainting current method allowed?
+    u4   implicitBranchTag    = TAINT_CLEAR; // tag of the last if branch
+#endif /* WITH_TAINT_TRACKING */
+
     const u2* pc;               // program counter
     u4* fp;                     // frame pointer
     u2 inst;                    // current instruction
@@ -116,6 +129,10 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
     default:
         dvmAbort();
     }
+
+    // VALI
+    /* assert(false); */
+    LOGV("ASSERT VALI WAS HERE\n");
 
 #ifdef THREADED_INTERP
     FINISH(0);                  /* fetch and execute first instruction */

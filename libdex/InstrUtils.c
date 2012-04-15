@@ -280,6 +280,9 @@ InstructionWidth* dexCreateInstrWidthTable(void)
         case OP_INVOKE_DIRECT_RANGE:
         case OP_INVOKE_STATIC_RANGE:
         case OP_INVOKE_INTERFACE_RANGE:
+        case OP_MARKER: /* VALI */
+        case OP_IF_MARKER: /* VALI */
+        case OP_IPD_MARKER: /* VALI */
             width = 3;
             break;
 
@@ -323,8 +326,8 @@ InstructionWidth* dexCreateInstrWidthTable(void)
             break;
 
         /* these should never appear when scanning bytecode */
-        case OP_UNUSED_3E:
-        case OP_UNUSED_3F:
+        /* case OP_UNUSED_3E: */
+        /* case OP_UNUSED_3F: */
         case OP_UNUSED_40:
         case OP_UNUSED_41:
         case OP_UNUSED_42:
@@ -334,7 +337,7 @@ InstructionWidth* dexCreateInstrWidthTable(void)
         case OP_UNUSED_7A:
         case OP_BREAKPOINT:
         case OP_UNUSED_F1:
-        case OP_UNUSED_FF:
+        /* case OP_UNUSED_FF: */
             assert(width == 0);
             break;
 
@@ -488,6 +491,9 @@ InstructionFlags* dexCreateInstrFlagsTable(void)
         case OP_SHL_INT_LIT8:
         case OP_SHR_INT_LIT8:
         case OP_USHR_INT_LIT8:
+        case OP_MARKER:
+        case OP_IF_MARKER:
+        case OP_IPD_MARKER:
             flags = kInstrCanContinue;
             break;
 
@@ -652,8 +658,8 @@ InstructionFlags* dexCreateInstrFlagsTable(void)
             break;
 
         /* these should never appear when scanning code */
-        case OP_UNUSED_3E:
-        case OP_UNUSED_3F:
+        /* case OP_UNUSED_3E: */
+        /* case OP_UNUSED_3F: */
         case OP_UNUSED_40:
         case OP_UNUSED_41:
         case OP_UNUSED_42:
@@ -663,7 +669,7 @@ InstructionFlags* dexCreateInstrFlagsTable(void)
         case OP_UNUSED_7A:
         case OP_BREAKPOINT:
         case OP_UNUSED_F1:
-        case OP_UNUSED_FF:
+        /* case OP_UNUSED_FF: */
             break;
 
         /*
@@ -786,6 +792,11 @@ InstructionFormat* dexCreateInstrFormatTable(void)
             break;
         case OP_GOTO_32:
             fmt = kFmt30t;
+            break;
+        case OP_MARKER:    /* VALI */
+        case OP_IF_MARKER:    /* VALI */
+        case OP_IPD_MARKER:    /* VALI */
+            fmt = kFmt30i;
             break;
         case OP_CONST_STRING:
         case OP_CONST_CLASS:
@@ -1012,8 +1023,8 @@ InstructionFormat* dexCreateInstrFormatTable(void)
             break;
 
         /* these should never appear when scanning code */
-        case OP_UNUSED_3E:
-        case OP_UNUSED_3F:
+        /* case OP_UNUSED_3E: */
+        /* case OP_UNUSED_3F: */
         case OP_UNUSED_40:
         case OP_UNUSED_41:
         case OP_UNUSED_42:
@@ -1023,7 +1034,7 @@ InstructionFormat* dexCreateInstrFormatTable(void)
         case OP_UNUSED_7A:
         case OP_BREAKPOINT:
         case OP_UNUSED_F1:
-        case OP_UNUSED_FF:
+        /* case OP_UNUSED_FF: */
             fmt = kFmtUnknown;
             break;
 
@@ -1126,6 +1137,9 @@ void dexDecodeInstruction(const InstructionFormat* fmts, const u2* insns,
         pDec->vC = FETCH(1);
         break;
     case kFmt30t:        // op +AAAAAAAA
+        pDec->vA = FETCH(1) | ((u4) FETCH(2) << 16); // signed 32-bit value
+        break;
+    case kFmt30i:        // op +AAAAAAAA
         pDec->vA = FETCH(1) | ((u4) FETCH(2) << 16); // signed 32-bit value
         break;
     case kFmt31t:       // op vAA, +BBBBBBBB

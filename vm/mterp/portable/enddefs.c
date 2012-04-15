@@ -36,6 +36,8 @@ bail_switch:
     interpState->retval = retval;   /* need for _entryPoint=ret */
 #ifdef WITH_TAINT_TRACKING
     interpState->rtaint = rtaint;
+    /* interpState->implicitTaintMode = implicitTaintMode; */
+    /* interpState->implicitTaintTag  = implicitTaintTag; */
 #endif
     interpState->nextMode =
         (INTERP_TYPE == INTERP_STD) ? INTERP_DBG : INTERP_STD;

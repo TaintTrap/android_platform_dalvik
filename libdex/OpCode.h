@@ -139,8 +139,10 @@ typedef enum OpCode {
     OP_IF_GTZ                       = 0x3c,
     OP_IF_LEZ                       = 0x3d,
 
-    OP_UNUSED_3E                    = 0x3e,
-    OP_UNUSED_3F                    = 0x3f,
+    /* OP_UNUSED_3E                    = 0x3e, */
+    /* OP_UNUSED_3F                    = 0x3f, */
+    OP_IF_MARKER                    = 0x3e,
+    OP_IPD_MARKER                   = 0x3f,
     OP_UNUSED_40                    = 0x40,
     OP_UNUSED_41                    = 0x41,
     OP_UNUSED_42                    = 0x42,
@@ -363,7 +365,8 @@ typedef enum OpCode {
     OP_SGET_OBJECT_VOLATILE         = 0xfd,
     OP_SPUT_OBJECT_VOLATILE         = 0xfe,
 
-    OP_UNUSED_FF                    = 0xff, /* reserved for code expansion */
+    /* OP_UNUSED_FF                    = 0xff, /\* reserved for code expansion *\/ */
+    OP_MARKER                       = 0xff, /* reserved for code expansion */
 } OpCode;
 
 #define kNumDalvikInstructions 256
@@ -453,8 +456,10 @@ typedef enum OpCode {
         H(OP_IF_GEZ),                                                       \
         H(OP_IF_GTZ),                                                       \
         H(OP_IF_LEZ),                                                       \
-        H(OP_UNUSED_3E),                                                    \
-        H(OP_UNUSED_3F),                                                    \
+        /* H(OP_UNUSED_3E), */                                          \
+        /* H(OP_UNUSED_3F), */                                          \
+        H(OP_IF_MARKER),                                                \
+        H(OP_IPD_MARKER),                                               \
         /* 40..4f */                                                        \
         H(OP_UNUSED_40),                                                    \
         H(OP_UNUSED_41),                                                    \
@@ -658,7 +663,7 @@ typedef enum OpCode {
         H(OP_IPUT_OBJECT_VOLATILE),                                         \
         H(OP_SGET_OBJECT_VOLATILE),                                         \
         H(OP_SPUT_OBJECT_VOLATILE),                                         \
-        H(OP_UNUSED_FF),                                                    \
+        H(OP_MARKER),                                                       \
     };
 
 #endif /*_LIBDEX_OPCODE*/

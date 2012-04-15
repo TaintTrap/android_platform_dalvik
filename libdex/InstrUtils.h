@@ -58,6 +58,7 @@ enum InstructionFormat {
     kFmt22cs,       // [opt] op vA, vB, field offset CCCC
     kFmt32x,        // op vAAAA, vBBBB
     kFmt30t,        // op +AAAAAAAA
+    kFmt30i,        // op #+AAAAAAAA
     kFmt31t,        // op vAA, +BBBBBBBB
     kFmt31i,        // op vAA, #+BBBBBBBB
     kFmt31c,        // op vAA, thing@BBBBBBBB

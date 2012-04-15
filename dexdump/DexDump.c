@@ -855,6 +855,9 @@ void dumpInstruction(DexFile* pDexFile, const DexCode* pCode, int insnIdx,
     case kFmt30t:
         printf(" #%08x", pDecInsn->vA);
         break;
+    case kFmt30i:               /* marker #+AAAAAAAA */
+        printf(" id/%04x pdom/%04x", pDecInsn->vA >> 16, pDecInsn->vA & 0xFFFF);
+        break;
     case kFmt31i:        // op vAA, #+BBBBBBBB
         {
             /* this is often, but not always, a float */

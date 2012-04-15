@@ -310,6 +310,20 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 }
 #endif
 
+#ifdef WITH_TAINT_TRACKING
+static inline s8 getRegister(const u4* fp, int idx)
+{
+    printf("+++ GET_REGISTER v%-2d : fp[idx<<1] : 0x%04x\n", idx, fp[idx]);
+    return fp[idx];
+}
+
+static inline s8 getRegisterTaint(const u4* fp, int idx)
+{
+    printf("+++ GET_REGISTER_TAINT v%-2d : fp[(idx<<1)+1] : 0x%04x\n", idx, fp[idx]);
+    return fp[idx];
+}
+#endif
+
 /*
  * If enabled, validate the register number on every access.  Otherwise,
  * just do an array access.
@@ -352,18 +366,41 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
     ( (_idx) < curMethod->registersSize-1 ? \
         putDoubleToArrayTaint(fp, ((_idx)<<1), (_val)) : (assert(!"bad reg"),1969.0) )
 #else
+/* # define GET_REGISTER(_idx)                 (fp[(_idx)<<1];             \ */
+/*                                              TLOGV("+++ GET_REGISTER v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
+/* # define SET_REGISTER(_idx, _val)           (fp[(_idx)<<1] = (_val);    \ */
+/*                                              TLOGV("+++ SET_REGISTER v%-2d : fp[idx << 1] = 0x%08x\n", _idx, _val) ) */
+/* # define GET_REGISTER_AS_OBJECT(_idx)       ((Object*) fp[(_idx)<<1];   \ */
+/*                                              TLOGV("+++ GET_REGISTER_AS_OBJECT v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
+/* # define SET_REGISTER_AS_OBJECT(_idx, _val) (fp[(_idx)<<1] = (u4)(_val); \ */
+/*                                              TLOGV("+++ SET_REGISTER_AS_OBJECT v%-2d : fp[idx << 1] = 0x%08x\n", _idx, _val) ) */
+/* # define GET_REGISTER_INT(_idx)             ((s4)GET_REGISTER(_idx)) */
+/* # define SET_REGISTER_INT(_idx, _val)       SET_REGISTER(_idx, (s4)_val) */
+/* # define GET_REGISTER_WIDE(_idx)            (getLongFromArrayTaint(fp, ((_idx)<<1)); \ */
+/*                                              TLOGV("+++ GET_REGISTER_WIDE v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
+/* # define SET_REGISTER_WIDE(_idx, _val)      (putLongToArrayTaint(fp, ((_idx)<<1), (_val)); \ */
+/*                                              TLOGV("+++ GET_REGISTER_WIDE v%-2d : fp[idx << 1] = 0x%08x\n", _idx, _val) ) */
+/* # define GET_REGISTER_FLOAT(_idx)           (*((float*) &fp[(_idx)<<1]); \ */
+/*                                              TLOGV("+++ GET_REGISTER_FLOAT v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
+/* # define SET_REGISTER_FLOAT(_idx, _val)     (*((float*) &fp[(_idx)<<1]) = (_val); \ */
+/*                                              TLOGV("+++ SET_REGISTER_FLOAT v%-2d : fp[idx << 1] = 0x%08x\n", _idx, val) ) */
+/* # define GET_REGISTER_DOUBLE(_idx)          (getDoubleFromArrayTaint(fp, ((_idx)<<1)); \ */
+/*                                              TLOGV("+++ GET_REGISTER_DOUBLE v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
+/* # define SET_REGISTER_DOUBLE(_idx, _val)    (putDoubleToArrayTaint(fp, ((_idx)<<1), (_val)); \ */
+/*                                              TLOGV("+++ SET_REGISTER_DOUBLE v%-2d : fp[idx << 1] = 0x%08x\n", _idx, val) ) */
 # define GET_REGISTER(_idx)                 (fp[(_idx)<<1])
+/* # define GET_REGISTER(_idx)                 (getRegister(fp, ((_idx)<<1))) */
 # define SET_REGISTER(_idx, _val)           (fp[(_idx)<<1] = (_val))
 # define GET_REGISTER_AS_OBJECT(_idx)       ((Object*) fp[(_idx)<<1])
 # define SET_REGISTER_AS_OBJECT(_idx, _val) (fp[(_idx)<<1] = (u4)(_val))
 # define GET_REGISTER_INT(_idx)             ((s4)GET_REGISTER(_idx))
 # define SET_REGISTER_INT(_idx, _val)       SET_REGISTER(_idx, (s4)_val)
-# define GET_REGISTER_WIDE(_idx)            getLongFromArrayTaint(fp, ((_idx)<<1))
-# define SET_REGISTER_WIDE(_idx, _val)      putLongToArrayTaint(fp, ((_idx)<<1), (_val))
+# define GET_REGISTER_WIDE(_idx)            (getLongFromArrayTaint(fp, ((_idx)<<1)))
+# define SET_REGISTER_WIDE(_idx, _val)      (putLongToArrayTaint(fp, ((_idx)<<1), (_val)))
 # define GET_REGISTER_FLOAT(_idx)           (*((float*) &fp[(_idx)<<1]))
 # define SET_REGISTER_FLOAT(_idx, _val)     (*((float*) &fp[(_idx)<<1]) = (_val))
-# define GET_REGISTER_DOUBLE(_idx)          getDoubleFromArrayTaint(fp, ((_idx)<<1))
-# define SET_REGISTER_DOUBLE(_idx, _val)    putDoubleToArrayTaint(fp, ((_idx)<<1), (_val))
+# define GET_REGISTER_DOUBLE(_idx)          (getDoubleFromArrayTaint(fp, ((_idx)<<1)))
+# define SET_REGISTER_DOUBLE(_idx, _val)    (putDoubleToArrayTaint(fp, ((_idx)<<1), (_val)))
 #endif
 /* -- End Taint Tracking version ---------------------------------- */
 #else /* no taint tracking */
@@ -415,10 +452,20 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 #ifdef WITH_TAINT_TRACKING
 /* Core get and set macros */
 # define GET_REGISTER_TAINT(_idx)      (fp[((_idx)<<1)+1])
-# define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val))
+/* # define GET_REGISTER_TAINT(_idx)      (getRegisterTaint(fp, ((_idx)<<1)+1)) */
+/* # define GET_REGISTER_TAINT(_idx)      (fp[((_idx)<<1)+1]);             \ */
+/*     TLOGV("GET_REGISTER_TAINT"); */
+/*                                         TLOGV("+++ GET_REGISTER v%-2d : fp[(idx<<1)+1] : 0x%08x\n", (_idx), fp[(_idx)<<1]); ) */
+/* # define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val)) */
+# define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag)); \
+    TLOGV(" +++ SET_REGISTER_TAINT v%-2d : fp[(%d<<1)+1] = 0x%04x implicit = 0x%04x", (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag);
 # define GET_REGISTER_TAINT_WIDE(_idx)       (fp[((_idx)<<1)+1])
+/* # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \ */
+/*                                         fp[((_idx)<<1)+3] = (u4)(_val)) */
 # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
-                                        fp[((_idx)<<1)+3] = (u4)(_val))
+                                              fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag)); \
+    TLOGV(" +++ SET_REGISTER_TAINT_WIDE v%-2d : fp[(%d<<1)+1] = fp[(%d<<1)+3] = 0x%04x implcit = 0x%04x", (_idx), (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag);
+
 /* Alternate interfaces to help dereference register width */
 # define GET_REGISTER_TAINT_INT(_idx)           GET_REGISTER_TAINT(_idx)
 # define SET_REGISTER_TAINT_INT(_idx, _val)       SET_REGISTER_TAINT(_idx, _val)
@@ -431,11 +478,24 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 
 /* Object Taint interface */
 # define GET_ARRAY_TAINT(_arr)          ((_arr)->taint.tag)
-# define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val))
+/* # define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val)) */
+# define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val | implicitTaintTag)); \
+    TLOGV(" +++ SET_ARRAY_TAINT val : 0x%04x implicit : 0x%04x", (u4)(_val | implicitTaintTag), implicitTaintTag);
+
 
 /* Return value taint (assumes rtaint variable is in scope */
 # define GET_RETURN_TAINT()         (rtaint.tag)
-# define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val))
+/* # define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val)) */
+# define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val));  \
+    TLOGV(" +++ SET_RETURN_TAINT val : 0x%04x", (u4)(_val));
+/* Scope taint stack */
+/* #if 0 */
+/* # define PUSH_TAINT(_val) (curMethod->scopeTaint[++curMethod->scopeIdx] = (u4)(_val)) */
+/* # define POP_TAINT() (curMethod->scopeTaint[curMethod->scopeIdx--] = TAINT_CLEAR) */
+/* #else */
+/* # define PUSH_TAINT(_val) pushTaint(curMethod, (u4)(_val)) */
+/* # define POP_TAINT() popTaint(curMethod) */
+# define IMPLICIT_BRANCH_TAINT(_val) implicitBranchTag = (u4)(_val)
 #else
 # define GET_REGISTER_TAINT(_idx)       ((void)0)
 # define SET_REGISTER_TAINT(_idx, _val)       ((void)0)
@@ -451,6 +511,7 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 # define SET_ARRAY_TAINT(_field, _val)              ((void)0)
 # define GET_RETURN_TAINT()         ((void)0)
 # define SET_RETURN_TAINT(_val)         ((void)0)
+# define IMPLICIT_BRANCH_TAINT() ((void)0)
 #endif
 
 /*
