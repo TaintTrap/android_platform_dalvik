@@ -3096,9 +3096,8 @@ void dvmDbgDdmSendChunk(int type, size_t len, const u1* buf)
 void dvmDbgDdmSendChunkV(int type, const struct iovec* iov, int iovcnt)
 {
     if (gDvm.jdwpState == NULL) {
-        // VALI
-        /* LOGV("Debugger thread not active, ignoring DDM send (t=0x%08x l=%d)\n", */
-        /*     type, len); */
+        LOGV("Debugger thread not active, ignoring DDM send (t=0x%08x l=%d)\n",
+            type, len);
         return;
     }
 

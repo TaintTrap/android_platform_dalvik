@@ -31,8 +31,6 @@
 
 #include <stdlib.h>
 
-// VALI
-#define LOG_NDEBUG 0
 
 /*
  * Find the class corresponding to "classIdx", which maps to a class name
@@ -339,9 +337,8 @@ Method* dvmResolveInterfaceMethod(const ClassObject* referrer, u4 methodIdx)
     DexProto proto;
     dexProtoSetFromMethodId(&proto, pDvmDex->pDexFile, pMethodId);
 
-    // VALI
-    /* LOGVV("+++ looking for '%s' '%s' in resClass='%s'\n", */
-    /*     methodName, methodSig, resClass->descriptor); */
+    LOGVV("+++ looking for '%s' '%s' in resClass='%s'\n",
+        methodName, methodSig, resClass->descriptor);
     resMethod = dvmFindVirtualMethod(resClass, methodName, &proto);
     if (resMethod == NULL) {
         LOGVV("+++ did not resolve immediately\n");

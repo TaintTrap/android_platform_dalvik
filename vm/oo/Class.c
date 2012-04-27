@@ -2080,10 +2080,6 @@ static void loadMethodFromDex(ClassObject* clazz, const DexMethod* pDexMethod,
     meth->clazz = clazz;
     meth->jniArgInfo = 0;
 
-/* #ifdef WITH_TAINT_TRACKING */
-/*     meth->scopeIdx = -1; */
-/* #endif /\* WITH_TAINT_TRACKING *\/ */
-
     if (dvmCompareNameDescriptorAndMethod("finalize", "()V", meth) == 0) {
         SET_CLASS_FLAG(clazz, CLASS_ISFINALIZABLE);
     }

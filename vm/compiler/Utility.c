@@ -191,9 +191,8 @@ static int dumpMethodStats(void *compilerMethodStats, void *totalMethodStats)
     totalStats->nativeSize += methodStats->nativeSize;
 
     /* Enable the following when fine-tuning the JIT performance */
-#if 1
-    /* int limit = (methodStats->dalvikSize >> 2) * 3; */
-    int limit = 0;
+#if 0
+    int limit = (methodStats->dalvikSize >> 2) * 3;
 
     /* If over 3/4 of the Dalvik code is compiled, print something */
     if (methodStats->compiledDalvikSize >= limit) {
