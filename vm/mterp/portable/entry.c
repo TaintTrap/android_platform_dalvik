@@ -22,19 +22,22 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
 #endif
 
     /* core state */
-    /* const Method* curMethod;    // method we're interpreting */
+    const Method* curMethod;    // method we're interpreting
     // VALI removed const in order to make changes
-    Method* curMethod;          // method we're interpreting
+    /* Method* curMethod;          // method we're interpreting */
 
     // TODO add a WITH_IMPLICIT_TAINT_TRACKING guard instead
-#ifdef WITH_TAINT_TRACKING
+#ifdef WITH_IMPLICIT_TRACKING
     /* bool implicitTaintMode    = interpState->implicitTaintMode; */
-    bool implicitTaintMode    = false; /* FIXME */
-    /* u4   implicitTaintTag     = interpState->implicitTaintTag; */
-    u4   implicitTaintTag     = TAINT_CLEAR;  /* FIXME */
-    bool implicitTaintAllowed = false;       // tainting current method allowed?
+    /* bool implicitTaintMode    = false; */
+    bool implicitTaintMode;
+    setImplicitTaintMode(&implicitTaintMode, false);
+    u4   implicitTaintTag     = interpState->implicitTaintTag;
+    bool implicitStartingFrame = false; /* if we started tainting in the current method */
+    u4   implicitBranchPdom   = 0; // ipd of last if-marker (used in subsequeny IF handler)
     u4   implicitBranchTag    = TAINT_CLEAR; // tag of the last if branch
-#endif /* WITH_TAINT_TRACKING */
+    u2   prevInst             = 0; // opcode of prev instruction, used for IF to see if it had a if-marker
+#endif /* WITH_IMPLICIT_TRACKING */
 
     const u2* pc;               // program counter
     u4* fp;                     // frame pointer
@@ -45,7 +48,6 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
     /* method call setup */
     const Method* methodToCall;
     bool methodCallRange;
-
 
 #if defined(THREADED_INTERP)
     /* static computed goto table */
@@ -130,9 +132,14 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
         dvmAbort();
     }
 
-    // VALI
-    /* assert(false); */
-    LOGV("ASSERT VALI WAS HERE\n");
+    /* LOGV("ASSERT VALI WAS HERE\n"); */
+/* #ifdef WITH_IMPLICIT_TRACKING */
+/*     TLOGV("[IFLOW] curMethod             = %s.%s", curMethod->clazz->descriptor, curMethod->name); */
+/*     TLOGV("[IFLOW] implicitTaintMode     = %s", BOOL(implicitTaintMode)); */
+/*     TLOGV("[IFLOW] implicitTaintTag      = %04x", implicitTaintTag); */
+/*     TLOGV("[IFLOW] implicitStartingFrame = %s", BOOL(implicitStartingFrame)); */
+/*     TLOGV("[IFLOW] implicitBranchPdom    = %04x", implicitBranchPdom); */
+/* #endif */
 
 #ifdef THREADED_INTERP
     FINISH(0);                  /* fetch and execute first instruction */

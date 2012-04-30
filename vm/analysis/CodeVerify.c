@@ -3423,9 +3423,9 @@ static bool doCodeVerification(const Method* meth, InsnFlags* insnFlags,
                 IF_LOGD() {
                     char* desc =
                         dexProtoCopyMethodDescriptor(&meth->prototype);
-                    LOGD("VFY: dead code 0x%04x-%04x in %s.%s %s\n",
+                    LOGD("VFY: dead code 0x%04x-%04x in %s.%s %s opcode 0x%02x\n",
                         deadStart, insnIdx-1,
-                        meth->clazz->descriptor, meth->name, desc);
+                         meth->clazz->descriptor, meth->name, desc, instr);
                     free(desc);
                 }
 

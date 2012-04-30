@@ -67,25 +67,6 @@ include $(BUILD_SHARED_LIBRARY)
 # correctness/performance bugs triage
 ifeq ($(WITH_JIT),true)
 
-    # VALI
-    include $(LOCAL_PATH)/ReconfigureDvm.mk
-
-    # Enable JIT-tuning
-    LOCAL_CFLAGS += -DWITH_JIT_TUNING $(target_smp_flag)
-    LOCAL_MODULE := libdvm_test
-    include $(BUILD_SHARED_LIBRARY)
-
-    # Derivation #0
-    # Enable assert and JIT tuning
-
-    include $(LOCAL_PATH)/ReconfigureDvm.mk
-
-    # Enable JIT-tuning
-    LOCAL_CFLAGS += -UNDEBUG -DDEBUG=1 -DLOG_NDEBUG=1 \
-                    -DWITH_JIT_TUNING $(target_smp_flag)
-    LOCAL_MODULE := libdvm_tuning
-    include $(BUILD_SHARED_LIBRARY)
-
     # Derivation #1
     # Enable assert and JIT tuning
     include $(LOCAL_PATH)/ReconfigureDvm.mk

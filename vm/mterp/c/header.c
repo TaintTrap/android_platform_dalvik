@@ -15,7 +15,9 @@
  */
 
 // VALI
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
+//#define IMPLICIT_DEBUG
+//#define WITH_IMPLICIT_TRACKING
 
 /* common includes */
 #include "Dalvik.h"
@@ -72,7 +74,7 @@
 # define NO_UNALIGN_64__MEMCPY
 #endif
 
-#define LOG_INSTR                   /* verbose debugging */
+//#define LOG_INSTR                   /* verbose debugging */
 /* set and adjust ANDROID_LOG_TAGS='*:i jdwp:i dalvikvm:i dalvikvmi:i' */
 
 /*
@@ -135,6 +137,7 @@
 /*
  * If enabled, log instructions as we execute them.
  */
+#undef LOG_INSTR
 #ifdef LOG_INSTR
 # define ILOGD(...) ILOG(LOG_DEBUG, __VA_ARGS__)
 # define ILOGV(...) ILOG(LOG_VERBOSE, __VA_ARGS__)
@@ -175,11 +178,14 @@ static const char kSpacing[] = "            ";
             LOG(_level, LOG_TAG"t", "%-2d|####%s\n",                        \
                 self->threadId, debugStrBuf);                               \
     } while(false)
+/* Helper function for printing boolean values */
+# define BOOL(_val) ((_val) ? "true" : "false")
 #else
 # define TLOGD(...) ((void)0)
 # define TLOGV(...) ((void)0)
 # define TLOGW(...) ((void)0)
 # define TLOGE(...) ((void)0)
+# define BOOL(_val) ((void)0)
 #endif
 
 /* get a long from an array of u4 */
@@ -313,14 +319,24 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 #ifdef WITH_TAINT_TRACKING
 static inline s8 getRegister(const u4* fp, int idx)
 {
+#ifdef IMPLICIT_DEBUG
     printf("+++ GET_REGISTER v%-2d : fp[idx<<1] : 0x%04x\n", idx, fp[idx]);
+#endif
     return fp[idx];
 }
 
 static inline s8 getRegisterTaint(const u4* fp, int idx)
 {
-    printf("+++ GET_REGISTER_TAINT v%-2d : fp[(idx<<1)+1] : 0x%04x\n", idx, fp[idx]);
+    if (fp[idx] != TAINT_CLEAR) {
+        printf("+++ GET_REGISTER_TAINT v%-2d : fp[(idx<<1)+1] : 0x%04x\n", idx, fp[idx]);
+    }
     return fp[idx];
+}
+#endif
+
+#ifdef WITH_IMPLICIT_TRACKING
+static void setImplicitTaintMode(bool *taintMode, bool mode) {
+  *taintMode = mode;
 }
 #endif
 
@@ -366,28 +382,6 @@ static inline s8 getRegisterTaint(const u4* fp, int idx)
     ( (_idx) < curMethod->registersSize-1 ? \
         putDoubleToArrayTaint(fp, ((_idx)<<1), (_val)) : (assert(!"bad reg"),1969.0) )
 #else
-/* # define GET_REGISTER(_idx)                 (fp[(_idx)<<1];             \ */
-/*                                              TLOGV("+++ GET_REGISTER v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
-/* # define SET_REGISTER(_idx, _val)           (fp[(_idx)<<1] = (_val);    \ */
-/*                                              TLOGV("+++ SET_REGISTER v%-2d : fp[idx << 1] = 0x%08x\n", _idx, _val) ) */
-/* # define GET_REGISTER_AS_OBJECT(_idx)       ((Object*) fp[(_idx)<<1];   \ */
-/*                                              TLOGV("+++ GET_REGISTER_AS_OBJECT v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
-/* # define SET_REGISTER_AS_OBJECT(_idx, _val) (fp[(_idx)<<1] = (u4)(_val); \ */
-/*                                              TLOGV("+++ SET_REGISTER_AS_OBJECT v%-2d : fp[idx << 1] = 0x%08x\n", _idx, _val) ) */
-/* # define GET_REGISTER_INT(_idx)             ((s4)GET_REGISTER(_idx)) */
-/* # define SET_REGISTER_INT(_idx, _val)       SET_REGISTER(_idx, (s4)_val) */
-/* # define GET_REGISTER_WIDE(_idx)            (getLongFromArrayTaint(fp, ((_idx)<<1)); \ */
-/*                                              TLOGV("+++ GET_REGISTER_WIDE v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
-/* # define SET_REGISTER_WIDE(_idx, _val)      (putLongToArrayTaint(fp, ((_idx)<<1), (_val)); \ */
-/*                                              TLOGV("+++ GET_REGISTER_WIDE v%-2d : fp[idx << 1] = 0x%08x\n", _idx, _val) ) */
-/* # define GET_REGISTER_FLOAT(_idx)           (*((float*) &fp[(_idx)<<1]); \ */
-/*                                              TLOGV("+++ GET_REGISTER_FLOAT v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
-/* # define SET_REGISTER_FLOAT(_idx, _val)     (*((float*) &fp[(_idx)<<1]) = (_val); \ */
-/*                                              TLOGV("+++ SET_REGISTER_FLOAT v%-2d : fp[idx << 1] = 0x%08x\n", _idx, val) ) */
-/* # define GET_REGISTER_DOUBLE(_idx)          (getDoubleFromArrayTaint(fp, ((_idx)<<1)); \ */
-/*                                              TLOGV("+++ GET_REGISTER_DOUBLE v%-2d : fp[idx << 1] : 0x%08x\n", _idx, fp[(_idx)<<1]) ) */
-/* # define SET_REGISTER_DOUBLE(_idx, _val)    (putDoubleToArrayTaint(fp, ((_idx)<<1), (_val)); \ */
-/*                                              TLOGV("+++ SET_REGISTER_DOUBLE v%-2d : fp[idx << 1] = 0x%08x\n", _idx, val) ) */
 # define GET_REGISTER(_idx)                 (fp[(_idx)<<1])
 /* # define GET_REGISTER(_idx)                 (getRegister(fp, ((_idx)<<1))) */
 # define SET_REGISTER(_idx, _val)           (fp[(_idx)<<1] = (_val))
@@ -395,12 +389,12 @@ static inline s8 getRegisterTaint(const u4* fp, int idx)
 # define SET_REGISTER_AS_OBJECT(_idx, _val) (fp[(_idx)<<1] = (u4)(_val))
 # define GET_REGISTER_INT(_idx)             ((s4)GET_REGISTER(_idx))
 # define SET_REGISTER_INT(_idx, _val)       SET_REGISTER(_idx, (s4)_val)
-# define GET_REGISTER_WIDE(_idx)            (getLongFromArrayTaint(fp, ((_idx)<<1)))
-# define SET_REGISTER_WIDE(_idx, _val)      (putLongToArrayTaint(fp, ((_idx)<<1), (_val)))
+# define GET_REGISTER_WIDE(_idx)            getLongFromArrayTaint(fp, ((_idx)<<1))
+# define SET_REGISTER_WIDE(_idx, _val)      putLongToArrayTaint(fp, ((_idx)<<1), (_val))
 # define GET_REGISTER_FLOAT(_idx)           (*((float*) &fp[(_idx)<<1]))
 # define SET_REGISTER_FLOAT(_idx, _val)     (*((float*) &fp[(_idx)<<1]) = (_val))
-# define GET_REGISTER_DOUBLE(_idx)          (getDoubleFromArrayTaint(fp, ((_idx)<<1)))
-# define SET_REGISTER_DOUBLE(_idx, _val)    (putDoubleToArrayTaint(fp, ((_idx)<<1), (_val)))
+# define GET_REGISTER_DOUBLE(_idx)          getDoubleFromArrayTaint(fp, ((_idx)<<1))
+# define SET_REGISTER_DOUBLE(_idx, _val)    putDoubleToArrayTaint(fp, ((_idx)<<1), (_val))
 #endif
 /* -- End Taint Tracking version ---------------------------------- */
 #else /* no taint tracking */
@@ -451,25 +445,25 @@ static inline s8 getRegisterTaint(const u4* fp, int idx)
 
 #ifdef WITH_TAINT_TRACKING
 /* Core get and set macros */
-# define GET_REGISTER_TAINT(_idx)      (fp[((_idx)<<1)+1])
-/* # define GET_REGISTER_TAINT(_idx)      (getRegisterTaint(fp, ((_idx)<<1)+1)) */
-/* # define GET_REGISTER_TAINT(_idx)      (fp[((_idx)<<1)+1]);             \ */
-/*     TLOGV("GET_REGISTER_TAINT"); */
-/*                                         TLOGV("+++ GET_REGISTER v%-2d : fp[(idx<<1)+1] : 0x%08x\n", (_idx), fp[(_idx)<<1]); ) */
-/* # define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val)) */
-# define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag)); \
-    TLOGV(" +++ SET_REGISTER_TAINT v%-2d : fp[(%d<<1)+1] = 0x%04x implicit = 0x%04x", (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag);
-# define GET_REGISTER_TAINT_WIDE(_idx)       (fp[((_idx)<<1)+1])
-/* # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \ */
-/*                                         fp[((_idx)<<1)+3] = (u4)(_val)) */
+# define GET_REGISTER_TAINT(_idx)	     (fp[((_idx)<<1)+1])
+#ifdef WITH_IMPLICIT_TRACKING
+# define SET_REGISTER_TAINT(_idx, _val)	     (fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag))
 # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
-                                              fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag)); \
-    TLOGV(" +++ SET_REGISTER_TAINT_WIDE v%-2d : fp[(%d<<1)+1] = fp[(%d<<1)+3] = 0x%04x implcit = 0x%04x", (_idx), (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag);
-
+	                                      fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag))
+# define SET_ARRAY_TAINT(_arr, _val)	      ((_arr)->taint.tag = (u4)(_val | implicitTaintTag))
+# define SET_RETURN_TAINT(_val)		      (rtaint.tag = (u4)(_val | implicitTaintTag))
+#else
+# define SET_REGISTER_TAINT(_idx, _val)	     (fp[((_idx)<<1)+1] = (u4)(_val))
+# define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
+	                                      fp[((_idx)<<1)+3] = (u4)(_val))
+# define SET_ARRAY_TAINT(_arr, _val)	      ((_arr)->taint.tag = (u4)(_val))
+# define SET_RETURN_TAINT(_val)		      (rtaint.tag = (u4)(_val))
+#endif  /* WITH_IMPLICIT_TRACKING */
+# define GET_REGISTER_TAINT_WIDE(_idx)       (fp[((_idx)<<1)+1])
 /* Alternate interfaces to help dereference register width */
-# define GET_REGISTER_TAINT_INT(_idx)           GET_REGISTER_TAINT(_idx)
+# define GET_REGISTER_TAINT_INT(_idx)	          GET_REGISTER_TAINT(_idx)
 # define SET_REGISTER_TAINT_INT(_idx, _val)       SET_REGISTER_TAINT(_idx, _val)
-# define GET_REGISTER_TAINT_FLOAT(_idx)           GET_REGISTER_TAINT(_idx)
+# define GET_REGISTER_TAINT_FLOAT(_idx)	          GET_REGISTER_TAINT(_idx)
 # define SET_REGISTER_TAINT_FLOAT(_idx, _val)     SET_REGISTER_TAINT(_idx, _val)
 # define GET_REGISTER_TAINT_DOUBLE(_idx)          GET_REGISTER_TAINT_WIDE(_idx)
 # define SET_REGISTER_TAINT_DOUBLE(_idx, _val)    SET_REGISTER_TAINT_WIDE(_idx, _val)
@@ -477,42 +471,61 @@ static inline s8 getRegisterTaint(const u4* fp, int idx)
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val) SET_REGISTER_TAINT(_idx, _val)
 
 /* Object Taint interface */
-# define GET_ARRAY_TAINT(_arr)          ((_arr)->taint.tag)
-/* # define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val)) */
-# define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val | implicitTaintTag)); \
-    TLOGV(" +++ SET_ARRAY_TAINT val : 0x%04x implicit : 0x%04x", (u4)(_val | implicitTaintTag), implicitTaintTag);
-
+# define GET_ARRAY_TAINT(_arr)		      ((_arr)->taint.tag)
 
 /* Return value taint (assumes rtaint variable is in scope */
-# define GET_RETURN_TAINT()         (rtaint.tag)
-/* # define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val)) */
-# define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val));  \
-    TLOGV(" +++ SET_RETURN_TAINT val : 0x%04x", (u4)(_val));
-/* Scope taint stack */
-/* #if 0 */
-/* # define PUSH_TAINT(_val) (curMethod->scopeTaint[++curMethod->scopeIdx] = (u4)(_val)) */
-/* # define POP_TAINT() (curMethod->scopeTaint[curMethod->scopeIdx--] = TAINT_CLEAR) */
-/* #else */
-/* # define PUSH_TAINT(_val) pushTaint(curMethod, (u4)(_val)) */
-/* # define POP_TAINT() popTaint(curMethod) */
-# define IMPLICIT_BRANCH_TAINT(_val) implicitBranchTag = (u4)(_val)
+# define GET_RETURN_TAINT()		      (rtaint.tag)
 #else
-# define GET_REGISTER_TAINT(_idx)       ((void)0)
-# define SET_REGISTER_TAINT(_idx, _val)       ((void)0)
-# define GET_REGISTER_TAINT_WIDE(_idx)        ((void)0)
-# define SET_REGISTER_TAINT_WIDE(_idx, _val)      ((void)0)
-# define GET_REGISTER_TAINT_INT(_idx)       ((void)0)
-# define SET_REGISTER_TAINT_INT(_idx, _val)     ((void)0)
-# define GET_REGISTER_TAINT_DOUBLE(_idx)      ((void)0)
-# define SET_REGISTER_TAINT_DOUBLE(_idx, _val)      ((void)0)
-# define GET_REGISTER_TAINT_AS_OBJECT(_idx)     ((void)0)
+# define GET_REGISTER_TAINT(_idx)		    ((void)0)
+# define SET_REGISTER_TAINT(_idx, _val)		    ((void)0)
+# define GET_REGISTER_TAINT_WIDE(_idx)		    ((void)0)
+# define SET_REGISTER_TAINT_WIDE(_idx, _val)	    ((void)0)
+# define GET_REGISTER_TAINT_INT(_idx)		    ((void)0)
+# define SET_REGISTER_TAINT_INT(_idx, _val)	    ((void)0)
+# define GET_REGISTER_TAINT_DOUBLE(_idx)	    ((void)0)
+# define SET_REGISTER_TAINT_DOUBLE(_idx, _val)	    ((void)0)
+# define GET_REGISTER_TAINT_AS_OBJECT(_idx)	    ((void)0)
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val)   ((void)0)
 # define GET_ARRAY_TAINT(_field)                    ((void)0)
 # define SET_ARRAY_TAINT(_field, _val)              ((void)0)
-# define GET_RETURN_TAINT()         ((void)0)
-# define SET_RETURN_TAINT(_val)         ((void)0)
-# define IMPLICIT_BRANCH_TAINT() ((void)0)
+# define GET_RETURN_TAINT()			    ((void)0)
+# define SET_RETURN_TAINT(_val)			    ((void)0)
 #endif
+
+#ifdef WITH_IMPLICIT_TRACKING
+# define IMPLICIT_BRANCH_TAINT(_val) if ((!implicitTaintMode) && ((u4)(_val) != TAINT_CLEAR)) { \
+    if (prevInst == OP_IF_MARKER) {                                     \
+      setImplicitTaintMode(&implicitTaintMode, true);                   \
+      implicitTaintTag = (u4)(_val);                                    \
+      implicitStartingFrame = true;                                     \
+      TLOGV("[STATE] IF-branch implicitTaintMode = %s implicitTaintTag = %04x implicitStartingFrame = %s implicitBranchPdom = %04x", \
+            BOOL(implicitTaintMode),                                    \
+            implicitTaintTag,                                           \
+            BOOL(implicitStartingFrame),                                \
+            implicitBranchPdom                                          \
+            );                                                          \
+    } else {                                                            \
+      TLOGE("[ERROR] IF-branch with Taint Tag = %04x and missing if-marker. Library not smalified?", (u4)(_val)); \
+    }                                                                   \
+  }
+#else
+# define IMPLICIT_BRANCH_TAINT() ((void)0)
+#endif /* WITH_IMPLICIT_TRACKING */
+
+/* # define GET_REGISTER_TAINT(_idx)      (getRegisterTaint(fp, ((_idx)<<1)+1)) */
+/* # define GET_REGISTER_TAINT(_idx)      (fp[((_idx)<<1)+1]);             \ */
+/*                                         TLOGV("+++ GET_REGISTER v%-2d : fp[(idx<<1)+1] : 0x%08x\n", (_idx), fp[(_idx)<<1]); ) */
+/* # define SET_REGISTER_TAINT(_idx, _val)	     fp[((_idx)<<1)+1] = (u4)(_val); \ */
+/*                                               TLOGV("[IFLOW-DEBUG] implicitTaintMode = %s", BOOL(implicitTaintMode)); */
+/* # define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag)); \ */
+/*     TLOGV(" +++ SET_REGISTER_TAINT v%-2d : fp[(%d<<1)+1] = 0x%04x implicit = 0x%04x", (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag); */
+/* # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \ */
+/*                                               fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag)); \ */
+/*     TLOGV(" +++ SET_REGISTER_TAINT_WIDE v%-2d : fp[(%d<<1)+1] = fp[(%d<<1)+3] = 0x%04x implcit = 0x%04x", (_idx), (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag); */
+/* # define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val | implicitTaintTag)); \ */
+/*     TLOGV(" +++ SET_ARRAY_TAINT val : 0x%04x implicit : 0x%04x", (u4)(_val | implicitTaintTag), implicitTaintTag); */
+/* # define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val));  \ */
+/*     TLOGV(" +++ SET_RETURN_TAINT val : 0x%04x", (u4)(_val)); */
 
 /*
  * Get 16 bits from the specified offset of the program counter.  We always

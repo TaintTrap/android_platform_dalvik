@@ -25,7 +25,7 @@
 #define _DALVIK_INTERP_DEFS
 
 // VALI
-#define LOG_INSTR
+/* #define LOG_INSTR */
 
 #ifdef WITH_TAINT_TRACKING
 #include "interp/Taint.h"
@@ -117,8 +117,6 @@ typedef struct InterpState {
     JValue      retval;                 // return value -- "out" only
 #ifdef WITH_TAINT_TRACKING
     Taint       rtaint;			// return taint value
-    /* bool implicitTaintMode; // taint Mode enabled? */
-    /* u4   implicitTaintTag; // global implicit taint tag to apply */
 #endif /* WITH_TAINT_TRACKING */
     const Method* method;               // method being executed
 
@@ -194,6 +192,11 @@ typedef struct InterpState {
     JitTraceRun trace[MAX_JIT_RUN_LEN];
     double calleeSave[JIT_CALLEE_SAVE_DOUBLE_COUNT];
 #endif
+
+#ifdef WITH_TAINT_TRACKING
+    bool implicitTaintMode; // taint Mode enabled?
+    u4   implicitTaintTag;  // global implicit taint tag to apply
+#endif /* WITH_TAINT_TRACKING */
 
 } InterpState;
 

@@ -32,6 +32,9 @@ LOCAL_CFLAGS += -DARCH_VARIANT=\"$(dvm_arch_variant)\"
 # Turn on Taint Tracking
 ifeq ($(WITH_TAINT_TRACKING),true)
   LOCAL_CFLAGS += -DWITH_TAINT_TRACKING
+  ifeq ($(WITH_IMPLICIT_TRACKING),true)
+    LOCAL_CFLAGS += -DWITH_IMPLICIT_TRACKING
+  endif
 endif
 ifeq ($(TAINT_JNI_LOG),true)
   LOCAL_CFLAGS += -DTAINT_JNI_LOG

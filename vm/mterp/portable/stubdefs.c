@@ -27,6 +27,7 @@
 # define HANDLE_OPCODE(_op) op_##_op:
 # define FINISH(_offset) {                                                  \
         ADJUST_PC(_offset);                                                 \
+        prevInst = inst;                                                   \
         inst = FETCH(0);                                                    \
         CHECK_DEBUG_AND_PROF();                                             \
         CHECK_TRACKED_REFS();                                               \

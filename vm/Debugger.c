@@ -2448,12 +2448,12 @@ void dvmDbgGetLocalValue(ObjectId threadId, FrameId frameId, int slot,
     case JT_LONG:
         assert(expectedLen == 8);
 #ifdef WITH_TAINT_TRACKING
-  {
-      union { u8 ll; u4 parts[2]; } conv;
-      conv.parts[0] = framePtr[slot];
-      conv.parts[1] = framePtr[slot+2];
-      longVal = conv.ll;
-  }
+	{
+	    union { u8 ll; u4 parts[2]; } conv;
+	    conv.parts[0] = framePtr[slot];
+	    conv.parts[1] = framePtr[slot+2];
+	    longVal = conv.ll;
+	}
 #else
         longVal = *(u8*)(&framePtr[slot]);
 #endif
@@ -2519,10 +2519,10 @@ void dvmDbgSetLocalValue(ObjectId threadId, FrameId frameId, int slot, u1 tag,
 #ifdef WITH_TAINT_TRACKING
         /* taint tag is interleaved */
         {
-          union { u8 ll; u4 parts[2]; } conv;
-          conv.ll = value;
-          framePtr[slot] = conv.parts[0];
-          framePtr[slot+2] = conv.parts[1];
+        	union { u8 ll; u4 parts[2]; } conv;
+        	conv.ll = value;
+        	framePtr[slot] = conv.parts[0];
+        	framePtr[slot+2] = conv.parts[1];
         }
 #else
         *(u8*)(&framePtr[slot]) = value;

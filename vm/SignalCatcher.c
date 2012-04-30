@@ -297,14 +297,14 @@ loop:
 
         switch (rcvd) {
         case SIGQUIT:
-            handleSigQuit();
+            /* handleSigQuit(); */
             break;
         case SIGUSR1:
-            handleSigUsr1();
+            /* handleSigUsr1(); */
             break;
 #if defined(WITH_JIT) && defined(WITH_JIT_TUNING)
         case SIGUSR2:
-            handleSigUsr2();
+            /* handleSigUsr2(); */
             break;
 #endif
         default:
