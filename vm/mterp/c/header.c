@@ -335,7 +335,7 @@ static inline s8 getRegisterTaint(const u4* fp, int idx)
 #endif
 
 #ifdef WITH_IMPLICIT_TRACKING
-static void setImplicitTaintMode(bool *taintMode, bool mode) {
+static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
   *taintMode = mode;
 }
 #endif
@@ -495,9 +495,7 @@ static void setImplicitTaintMode(bool *taintMode, bool mode) {
 #ifdef WITH_IMPLICIT_TRACKING
 # define IMPLICIT_BRANCH_TAINT(_val) if ((!implicitTaintMode) && ((u4)(_val) != TAINT_CLEAR)) { \
     if (prevInst == OP_IF_MARKER) {                                     \
-      setImplicitTaintMode(&implicitTaintMode, true);                   \
-      implicitTaintTag = (u4)(_val);                                    \
-      implicitStartingFrame = true;                                     \
+      IMPLICIT_START_TAINTING(_val);                                    \
       TLOGV("[STATE] IF-branch implicitTaintMode = %s implicitTaintTag = %04x implicitStartingFrame = %s implicitBranchPdom = %04x", \
             BOOL(implicitTaintMode),                                    \
             implicitTaintTag,                                           \
@@ -508,8 +506,19 @@ static void setImplicitTaintMode(bool *taintMode, bool mode) {
       TLOGE("[ERROR] IF-branch with Taint Tag = %04x and missing if-marker. Library not smalified?", (u4)(_val)); \
     }                                                                   \
   }
+# define IMPLICIT_STOP_TAINTING(_reason)                                \
+  setImplicitTaintMode(&implicitTaintMode, false);                      \
+  implicitTaintTag      = TAINT_CLEAR;                                  \
+  implicitStartingFrame = false;                                        \
+  implicitBranchPdom    = 0;                                            \
+  prevInst              = OP_NOP;
+# define IMPLICIT_START_TAINTING(_val)                                  \
+  setImplicitTaintMode(&implicitTaintMode, true);                       \
+  implicitTaintTag = (u4)(_val);                                        \
+  implicitStartingFrame = true;
 #else
 # define IMPLICIT_BRANCH_TAINT() ((void)0)
+# define IMPLICIT_STOP_TAINTING(_reason) ((void)0)
 #endif /* WITH_IMPLICIT_TRACKING */
 
 /* # define GET_REGISTER_TAINT(_idx)      (getRegisterTaint(fp, ((_idx)<<1)+1)) */

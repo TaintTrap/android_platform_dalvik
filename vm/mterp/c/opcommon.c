@@ -103,7 +103,8 @@ GOTO_TARGET_DECL(exceptionThrown);
         ILOGV("+ result=%d\n", result);                                     \
         SET_REGISTER(vdst, result);                                         \
 /* ifdef WITH_TAINT_TRACKING */                                             \
-        SET_REGISTER_TAINT(vdst, TAINT_CLEAR);				    \
+        /* SET_REGISTER_TAINT(vdst, TAINT_CLEAR);				    \ */        \
+        SET_REGISTER_TAINT(vdst, GET_REGISTER_TAINT(vsrc1) | GET_REGISTER_TAINT(vsrc2)); \
 /* endif */                                                                 \
     }                                                                       \
     FINISH(2);

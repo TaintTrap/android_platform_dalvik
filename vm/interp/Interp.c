@@ -1321,10 +1321,6 @@ void dvmInterpret(Thread* self, const Method* method, JValue* pResult)
 #ifdef WITH_TAINT_TRACKING
     interpState.rtaint.tag = TAINT_CLEAR;
 #endif
-#ifdef WITH_IMPLICIT_TRACKING
-    interpState.implicitTaintMode      = false;
-    interpState.implicitTaintTag       = TAINT_CLEAR;
-#endif
 
     interpState.method = method;
     interpState.fp = (u4*) self->curFrame;

@@ -49,6 +49,10 @@ LOCAL_MODULE := dexopt
 # Turn on Taint Tracking
 ifeq ($(WITH_TAINT_TRACKING),true)
   LOCAL_CFLAGS += -DWITH_TAINT_TRACKING
+  # Turn on Implicit Taint Tracking
+  ifeq ($(WITH_IMPLICIT_TRACKING),true)
+    LOCAL_CFLAGS += -DWITH_IMPLICIT_TRACKING
+  endif
 endif
 ifeq ($(WITH_TAINT_ODEX),true)
   LOCAL_CFLAGS += -DWITH_TAINT_ODEX

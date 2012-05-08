@@ -26,19 +26,6 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
     // VALI removed const in order to make changes
     /* Method* curMethod;          // method we're interpreting */
 
-    // TODO add a WITH_IMPLICIT_TAINT_TRACKING guard instead
-#ifdef WITH_IMPLICIT_TRACKING
-    /* bool implicitTaintMode    = interpState->implicitTaintMode; */
-    /* bool implicitTaintMode    = false; */
-    bool implicitTaintMode;
-    setImplicitTaintMode(&implicitTaintMode, false);
-    u4   implicitTaintTag     = interpState->implicitTaintTag;
-    bool implicitStartingFrame = false; /* if we started tainting in the current method */
-    u4   implicitBranchPdom   = 0; // ipd of last if-marker (used in subsequeny IF handler)
-    u4   implicitBranchTag    = TAINT_CLEAR; // tag of the last if branch
-    u2   prevInst             = 0; // opcode of prev instruction, used for IF to see if it had a if-marker
-#endif /* WITH_IMPLICIT_TRACKING */
-
     const u2* pc;               // program counter
     u4* fp;                     // frame pointer
     u2 inst;                    // current instruction
@@ -118,6 +105,18 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
         DUMP_REGS(curMethod, interpState->fp, false);
     }
 #endif
+
+#ifdef WITH_IMPLICIT_TRACKING
+    /* Global per interpreter (across interp calls) */
+    bool implicitTaintMode;
+    u4   implicitTaintTag;
+    /* These are initialized here but moved to/from StackSaveArea later on invoke/returns */
+    bool implicitStartingFrame;/* if we started tainting in the current method */
+    u4   implicitBranchPdom; // ipd of last if-marker (used in subsequeny IF handler)
+    u2   prevInst; // opcode of prev instruction, used for IF to see if it had a if-marker
+    /* Actually initialize the values above */
+    IMPLICIT_STOP_TAINTING("dvmInterpStd");
+#endif /* WITH_IMPLICIT_TRACKING */
 
     switch (interpState->entryPoint) {
     case kInterpEntryInstr:

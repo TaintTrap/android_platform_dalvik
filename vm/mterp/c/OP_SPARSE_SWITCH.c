@@ -5,6 +5,7 @@ HANDLE_OPCODE(OP_SPARSE_SWITCH /*vAA, +BBBB*/)
         s4 offset;
 
         vsrc1 = INST_AA(inst);
+        IMPLICIT_BRANCH_TAINT(GET_REGISTER_TAINT(vsrc1));
         offset = FETCH(1) | (((s4) FETCH(2)) << 16);
         ILOGV("|sparse-switch v%d +0x%04x", vsrc1, vsrc2);
         switchData = pc + offset;       // offset in 16-bit units

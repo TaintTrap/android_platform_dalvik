@@ -158,6 +158,12 @@ struct StackSaveArea {
 
     /* Native return pointer for JIT, or 0 if interpreted */
     const u2* returnAddr;
+
+#ifdef WITH_IMPLICIT_TRACKING
+  u4   prevImplicitBranchPdom;
+  bool prevImplicitStartingFrame;
+#endif  /* WITH_IMPLICIT_TRACKING */
+
 #ifdef PAD_SAVE_AREA
     u4          pad3, pad4, pad5;
 #endif

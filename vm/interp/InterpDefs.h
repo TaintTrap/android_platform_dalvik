@@ -193,11 +193,6 @@ typedef struct InterpState {
     double calleeSave[JIT_CALLEE_SAVE_DOUBLE_COUNT];
 #endif
 
-#ifdef WITH_TAINT_TRACKING
-    bool implicitTaintMode; // taint Mode enabled?
-    u4   implicitTaintTag;  // global implicit taint tag to apply
-#endif /* WITH_TAINT_TRACKING */
-
 } InterpState;
 
 /*
