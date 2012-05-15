@@ -39,8 +39,13 @@
 #define rtaint			glue->rtaint
 /* #define implicitTaintMode		glue->implicitTaintMode */
 /* #define implicitTaintTag		glue->implicitTaintTag */
-#define implicitTaintMode		false /* FIXME */
-#define implicitTaintTag		TAINT_CLEAR /* FIXME */
+/* #define implicitStartingFrame   false       /\* FIXME *\/ */
+/* #define implicitBranchPdom      0x0000      /\* FIXME *\/ */
+#define implicitStartingFrame   glue->implicitStartingFrame
+#define implicitBranchPdom      glue->implicitBranchPdom
+#define implicitTaintMode		    false       /* FIXME */
+#define implicitTaintTag		    TAINT_CLEAR /* FIXME */
+#define prevInst        		    glue->prevInst /* FIXME */
 #endif
 
 /* ugh */

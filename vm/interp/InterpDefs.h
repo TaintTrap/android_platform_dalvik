@@ -193,6 +193,12 @@ typedef struct InterpState {
     double calleeSave[JIT_CALLEE_SAVE_DOUBLE_COUNT];
 #endif
 
+#if defined(WITH_IMPLICIT_TRACKING)
+    bool implicitStartingFrame;
+    u4   implicitBranchPdom;
+    u2   prevInst;
+#endif
+
 } InterpState;
 
 /*

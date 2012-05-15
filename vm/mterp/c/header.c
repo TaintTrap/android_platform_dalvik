@@ -15,7 +15,7 @@
  */
 
 // VALI
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 //#define IMPLICIT_DEBUG
 //#define WITH_IMPLICIT_TRACKING
 

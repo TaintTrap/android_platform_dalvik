@@ -567,6 +567,11 @@ GOTO_TARGET(returnFromMethod)
             GOTO_bail();
         }
 
+#ifdef WITH_IMPLICIT_TRACKING
+        /* save previous method for printing*/
+        const Method* prevMethod = curMethod;
+#endif  /* WITH_IMPLICIT_TRACKING */
+
         /* update thread FP, and reset local variables */
         self->curFrame = fp;
         curMethod = SAVEAREA_FROM_FP(fp)->method;
@@ -576,21 +581,25 @@ GOTO_TARGET(returnFromMethod)
         ILOGD("> (return to %s.%s %s)", curMethod->clazz->descriptor,
             curMethod->name, curMethod->shorty);
 
-#ifdef WITH_IMPLICIT_TAINT_TRACKING
+#ifdef WITH_IMPLICIT_TRACKING
         if (implicitTaintMode && implicitStartingFrame) {
-          if (0xFFFF == implicitBranchPdom) { /* 0xFFFF is special case of method with return + throw(s) with no single IPD */
-            TLOGD("[IFLOW] [INFO] returnFromMethod, method has no unique IPD, keeping Taint Mode ON  (return+throw(s) exist)");
-            /* IMPLICIT_STOP_TAINTING("returnFromMethod"); */
-          } else {
-            TLOGE("[IFLOW] [ERROR] returnFromMethod, Smali/VM handler error? returning and expecting branchPdom = 0xFFFF but found 0x%04x", implicitBranchPdom);
-          }
+            if (0xFFFF == implicitBranchPdom) { /* 0xFFFF is special case of method with return + throw(s) with no single IPD */
+                TLOGD("[IFLOW] [INFO] returnFromMethod %s.%s %s, no unique IPD, keeping Taint Mode ON  (return+throw(s) exist)", 
+                      prevMethod->clazz->descriptor, prevMethod->name, prevMethod->shorty);
+                /* IMPLICIT_STOP_TAINTING("returnFromMethod"); */
+            } else {
+                TLOGE("[IFLOW] [ERROR] returnFromMethod, Smali/VM handler error? returning and expecting branchPdom = 0xFFFF but found 0x%04x", implicitBranchPdom);
+            }
         }
-        TLOGV("[IFLOW] returnFromMethod, restoring implicitStartingFrame = %s and implicitBranchPdom = %04x",
-              BOOL(implicitStartingFrame),
-              implicitBranchPdom);
         implicitStartingFrame = saveArea->prevImplicitStartingFrame;
         implicitBranchPdom = saveArea->prevImplicitBranchPdom;
-#endif  /* WITH_IMPLICIT_TAINT_TRACKING */
+        if (implicitStartingFrame) { /* no point printing otherwise */
+            TLOGV("[IFLOW] returnFromMethod %s.%s %s, restoring implicitStartingFrame = %s and implicitBranchPdom = %04x",
+                  prevMethod->clazz->descriptor, prevMethod->name, prevMethod->shorty,
+                  BOOL(implicitStartingFrame),
+                  implicitBranchPdom);
+        }
+#endif  /* WITH_IMPLICIT_TRACKING */
 
         /* use FINISH on the caller's invoke instruction */
         //u2 invokeInstr = INST_INST(FETCH(0));
@@ -745,10 +754,10 @@ GOTO_TARGET(exceptionThrown)
             curMethod->name, curMethod->shorty);
         DUMP_REGS(curMethod, fp, false);            // show all regs
 
-#ifdef WITH_IMPLICIT_TAINT_TRACKING
+#ifdef WITH_IMPLICIT_TRACKING
         // if (curMethod != exceptionMethod)
         /* IMPLICIT_STOP_TAINTING("exceptionThrown"); */
-#endif  /* WITH_IMPLICIT_TAINT_TRACKING */
+#endif  /* WITH_IMPLICIT_TRACKING */
 
         /*
          * Restore the exception if the handler wants it.
@@ -1003,10 +1012,12 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
 #endif
         newSaveArea->method = methodToCall;
 
-#ifdef WITH_IMPLICIT_TAINT_TRACKING
-        TLOGV("[IFLOW] [invokeMethod] saving implicitStartingFrame = %s and implicitBranchPdom = %04x",
-              BOOL(implicitStartingFrame),
-              implicitBranchPdom);
+#ifdef WITH_IMPLICIT_TRACKING
+        if (implicitStartingFrame) { /* no point printing if this is not the start frame */
+            TLOGV("[IFLOW] [invokeMethod] saving implicitStartingFrame = %s and implicitBranchPdom = %04x",
+                  BOOL(implicitStartingFrame),
+                  implicitBranchPdom);
+        }
         /* Save values of current frame to restore later on a return */
         newSaveArea->prevImplicitStartingFrame = implicitStartingFrame;
         newSaveArea->prevImplicitBranchPdom = implicitBranchPdom;
@@ -1014,7 +1025,7 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
         implicitStartingFrame = false;
         implicitBranchPdom = 0;
         prevInst = OP_NOP;
-#endif  /* WITH_IMPLICIT_TAINT_TRACKING */
+#endif  /* WITH_IMPLICIT_TRACKING */
 
         if (!dvmIsNativeMethod(methodToCall)) {
             /*

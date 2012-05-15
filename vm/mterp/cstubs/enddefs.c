@@ -10,6 +10,9 @@
 
 #ifdef WITH_TAINT_TRACKING
 #undef rtaint
+#undef implicitStartingFrame
+#undef implicitBranchPdomm
 #undef implicitTaintMode
 #undef implicitTaintTag
+#undef prevInst
 #endif
