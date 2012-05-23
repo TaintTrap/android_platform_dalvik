@@ -584,8 +584,10 @@ GOTO_TARGET(returnFromMethod)
 #ifdef WITH_IMPLICIT_TRACKING
         if (implicitTaintMode && implicitStartingFrame) {
             if (0xFFFF == implicitBranchPdom) { /* 0xFFFF is special case of method with return + throw(s) with no single IPD */
+#ifdef IMPLICIT_DEBUG
                 TLOGD("[IFLOW] [INFO] returnFromMethod %s.%s %s, no unique IPD, keeping Taint Mode ON  (return+throw(s) exist)", 
                       prevMethod->clazz->descriptor, prevMethod->name, prevMethod->shorty);
+#endif /* IMPLICIT_DEBUG */
                 /* IMPLICIT_STOP_TAINTING("returnFromMethod"); */
             } else {
                 TLOGE("[IFLOW] [ERROR] returnFromMethod, Smali/VM handler error? returning and expecting branchPdom = 0xFFFF but found 0x%04x", implicitBranchPdom);
@@ -593,12 +595,14 @@ GOTO_TARGET(returnFromMethod)
         }
         implicitStartingFrame = saveArea->prevImplicitStartingFrame;
         implicitBranchPdom = saveArea->prevImplicitBranchPdom;
+#ifdef IMPLICIT_DEBUG
         if (implicitStartingFrame) { /* no point printing otherwise */
             TLOGV("[IFLOW] returnFromMethod %s.%s %s, restoring implicitStartingFrame = %s and implicitBranchPdom = %04x",
                   prevMethod->clazz->descriptor, prevMethod->name, prevMethod->shorty,
                   BOOL(implicitStartingFrame),
                   implicitBranchPdom);
         }
+#endif /* IMPLICIT_DEBUG */
 #endif  /* WITH_IMPLICIT_TRACKING */
 
         /* use FINISH on the caller's invoke instruction */
@@ -1013,11 +1017,13 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
         newSaveArea->method = methodToCall;
 
 #ifdef WITH_IMPLICIT_TRACKING
+#ifdef IMPLICIT_DEBUG
         if (implicitStartingFrame) { /* no point printing if this is not the start frame */
             TLOGV("[IFLOW] [invokeMethod] saving implicitStartingFrame = %s and implicitBranchPdom = %04x",
                   BOOL(implicitStartingFrame),
                   implicitBranchPdom);
         }
+#endif /* IMPLICIT_DEBUG */
         /* Save values of current frame to restore later on a return */
         newSaveArea->prevImplicitStartingFrame = implicitStartingFrame;
         newSaveArea->prevImplicitBranchPdom = implicitBranchPdom;

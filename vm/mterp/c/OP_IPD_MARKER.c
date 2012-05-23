@@ -20,13 +20,15 @@ HANDLE_OPCODE(OP_IPD_MARKER)
     {
       IMPLICIT_STOP_TAINTING("ipd-marker");
 
+#ifdef IMPLICIT_DEBUG
       TLOGV("[IFLOW] [ipd-marker] FOUND! implicitTaintMode = %s implicitStartingFrame = %s implicitBranchPdom = %04x",
             BOOL(implicitTaintMode), 
             BOOL(implicitStartingFrame),
             implicitBranchPdom
             );
+#endif /* IMPLICIT_DEBUG */
     }
-#endif
+#endif /* WITH_IMPLICIT_TRACKING */
 
   FINISH(3);
 }

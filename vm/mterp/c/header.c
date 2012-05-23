@@ -15,7 +15,7 @@
  */
 
 // VALI
-#define LOG_NDEBUG 0
+/* #define LOG_NDEBUG 0 */
 //#define IMPLICIT_DEBUG
 //#define WITH_IMPLICIT_TRACKING
 
@@ -496,16 +496,17 @@ static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
 # define IMPLICIT_BRANCH_TAINT(_val) if ((!implicitTaintMode) && ((u4)(_val) != TAINT_CLEAR)) { \
     if (prevInst == OP_IF_MARKER) {                                     \
       IMPLICIT_START_TAINTING(_val);                                    \
-      TLOGV("[STATE] IF-branch implicitTaintMode = %s implicitTaintTag = %04x implicitStartingFrame = %s implicitBranchPdom = %04x", \
-            BOOL(implicitTaintMode),                                    \
-            implicitTaintTag,                                           \
-            BOOL(implicitStartingFrame),                                \
-            implicitBranchPdom                                          \
-            );                                                          \
     } else {                                                            \
       TLOGE("[ERROR] IF-branch with Taint Tag = %04x and missing if-marker. Library not smalified?", (u4)(_val)); \
     }                                                                   \
   }
+      /* TLOGV("[STATE] IF-branch implicitTaintMode = %s implicitTaintTag = %04x implicitStartingFrame = %s implicitBranchPdom = %04x", \ */
+      /*       BOOL(implicitTaintMode),                                    \ */
+      /*       implicitTaintTag,                                           \ */
+      /*       BOOL(implicitStartingFrame),                                \ */
+      /*       implicitBranchPdom                                          \ */
+      /*       );                                                          \ */
+
 # define IMPLICIT_STOP_TAINTING(_reason)                                \
   setImplicitTaintMode(&implicitTaintMode, false);                      \
   implicitTaintTag      = TAINT_CLEAR;                                  \
@@ -517,7 +518,7 @@ static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
   implicitTaintTag = (u4)(_val);                                        \
   implicitStartingFrame = true;
 #else
-# define IMPLICIT_BRANCH_TAINT() ((void)0)
+# define IMPLICIT_BRANCH_TAINT(_val) ((void)0)
 # define IMPLICIT_STOP_TAINTING(_reason) ((void)0)
 #endif /* WITH_IMPLICIT_TRACKING */
 

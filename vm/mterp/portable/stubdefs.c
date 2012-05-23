@@ -25,6 +25,7 @@
 #ifdef THREADED_INTERP
 # define H(_op)             &&op_##_op
 # define HANDLE_OPCODE(_op) op_##_op:
+#ifdef WITH_IMPLICIT_TRACKING   /* use prevInst */
 # define FINISH(_offset) {                                                  \
         ADJUST_PC(_offset);                                                 \
         prevInst = inst;                                                   \
@@ -34,6 +35,16 @@
         if (CHECK_JIT_BOOL()) GOTO_bail_switch();                           \
         goto *handlerTable[INST_INST(inst)];                                \
     }
+#else 
+# define FINISH(_offset) {                                                  \
+        ADJUST_PC(_offset);                                                 \
+        inst = FETCH(0);                                                    \
+        CHECK_DEBUG_AND_PROF();                                             \
+        CHECK_TRACKED_REFS();                                               \
+        if (CHECK_JIT_BOOL()) GOTO_bail_switch();                           \
+        goto *handlerTable[INST_INST(inst)];                                \
+    }
+#endif  /* WITH_IMPLICIT_TRACKING */
 # define FINISH_BKPT(_opcode) {                                             \
         goto *handlerTable[_opcode];                                        \
     }
