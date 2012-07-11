@@ -32,13 +32,15 @@ HANDLE_OPCODE(OP_APUT_OBJECT /*vAA, vBB, vCC*/)
             }
         }
         ILOGV("+ APUT[%d]=0x%08x", GET_REGISTER(vsrc2), GET_REGISTER(vdst));
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */
+        int idx = GET_REGISTER(vsrc2);
+        u4 objTaint = GET_REGISTER_TAINT(vdst);
+/* endif */
         dvmSetObjectArrayElement(arrayObj,
                                  GET_REGISTER(vsrc2),
                                  (Object *)GET_REGISTER(vdst));
-/* ifdef WITH_TAINT_TRACKING */
-	SET_ARRAY_TAINT(arrayObj,
-		(GET_ARRAY_TAINT(arrayObj) |
-		 GET_REGISTER_TAINT(vdst)) );
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */
+	SET_ARRAY_ELEMENT_TAINT(arrayObj, idx, objTaint);
 /* endif */
     }
     FINISH(2);

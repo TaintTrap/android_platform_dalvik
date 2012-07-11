@@ -157,7 +157,13 @@ static bool javaLangString_charAt(u4 arg0, u4 arg1, u4 arg2, u4 arg3,
         pResult->i = ((const u2*) chars->contents)[arg1 + offset];
 #ifdef WITH_TAINT_TRACKING
 	// rtaint <- taint(string) | taint(index)
-	rtaint->tag = chars->taint.tag | arg1_taint;
+	if (chars->taint.tag != 0) {
+            ArrayObject* tagArray = (ArrayObject*)chars->taint.tag;
+            rtaint->tag = ((int*)tagArray->contents)[arg1 + offset]; // PJG: arg1+offset
+        }
+	else
+            rtaint->tag = 0;
+        rtaint->tag = rtaint->tag | arg1_taint;
 #endif /*WITH_TAINT_TRACKING*/
         return true;
     }

@@ -434,8 +434,24 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val) SET_REGISTER_TAINT(_idx, _val)
 
 /* Object Taint interface */
-# define GET_ARRAY_TAINT(_arr)		      ((_arr)->taint.tag)
-# define SET_ARRAY_TAINT(_arr, _val)	      ((_arr)->taint.tag = (u4)(_val))
+// begin TAINT_ARRAY_ELEMENTS
+static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
+    if (arr->taint.tag!=TAINT_CLEAR) {
+        return ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[idx];
+    }
+    else
+        return TAINT_CLEAR;
+}
+# define SET_ARRAY_ELEMENT_TAINT(_arr, _idx, _val) do {                     \
+        if (((_arr)->taint.tag)==TAINT_CLEAR && _val!=TAINT_CLEAR) {        \
+            ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', _arr->length, ALLOC_DEFAULT); \
+            memset(tagArrayObj->contents, 0, 4 * _arr->length);             \
+            ((_arr)->taint.tag) = (u4)tagArrayObj;                          \
+            dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);            \
+        }                                                                   \
+        if (((_arr)->taint.tag)!=TAINT_CLEAR)                               \
+            ((u4*)((ArrayObject*)((_arr)->taint.tag))->contents)[_idx] = _val; \
+    } while(false)
 
 /* Return value taint (assumes rtaint variable is in scope */
 # define GET_RETURN_TAINT()		      (rtaint.tag)
@@ -451,11 +467,11 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 # define SET_REGISTER_TAINT_DOUBLE(_idx, _val)	    ((void)0)
 # define GET_REGISTER_TAINT_AS_OBJECT(_idx)	    ((void)0)
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val)   ((void)0)
-# define GET_ARRAY_TAINT(_field)                    ((void)0)
-# define SET_ARRAY_TAINT(_field, _val)              ((void)0)
+# define SET_ARRAY_ELEMENT_TAINT(_field, _val)      ((void)0)
 # define GET_RETURN_TAINT()			    ((void)0)
 # define SET_RETURN_TAINT(_val)			    ((void)0)
 #endif
+// end TAINT_ARRAY_ELEMENTS
 
 /*
  * Get 16 bits from the specified offset of the program counter.  We always
@@ -1254,11 +1270,15 @@ GOTO_TARGET_DECL(exceptionThrown);
                 NULL);                                                      \
             GOTO_exceptionThrown();                                         \
         }                                                                   \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */                     \
+        int idx = GET_REGISTER(vsrc2);                                      \
+        u4 idxTaint = GET_REGISTER_TAINT(vsrc2);                            \
+/* endif */                                                                 \
         SET_REGISTER##_regsize(vdst,                                        \
             ((_type*) arrayObj->contents)[GET_REGISTER(vsrc2)]);            \
-/* ifdef WITH_TAINT_TRACKING */						    \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */			    \
 	SET_REGISTER_TAINT##_regsize(vdst,                                  \
-	    (GET_ARRAY_TAINT(arrayObj)|GET_REGISTER_TAINT(vsrc2)));         \
+	    (getArrayElementTaint(arrayObj,idx)|idxTaint));                 \
 /* endif */								    \
         ILOGV("+ AGET[%d]=0x%x", GET_REGISTER(vsrc2), GET_REGISTER(vdst));  \
     }                                                                       \
@@ -1284,12 +1304,14 @@ GOTO_TARGET_DECL(exceptionThrown);
             GOTO_exceptionThrown();                                         \
         }                                                                   \
         ILOGV("+ APUT[%d]=0x%08x", GET_REGISTER(vsrc2), GET_REGISTER(vdst));\
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */                     \
+        int idx = GET_REGISTER(vsrc2);                                      \
+        u4 srcTaint = GET_REGISTER_TAINT##_regsize(vdst);                   \
+/* endif */                                                                 \
         ((_type*) arrayObj->contents)[GET_REGISTER(vsrc2)] =                \
             GET_REGISTER##_regsize(vdst);                                   \
-/* ifdef WITH_TAINT_TRACKING */						    \
-	SET_ARRAY_TAINT(arrayObj,                                           \
-		(GET_ARRAY_TAINT(arrayObj) |                                \
-		 GET_REGISTER_TAINT##_regsize(vdst)) );                     \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */			    \
+	SET_ARRAY_ELEMENT_TAINT(arrayObj, idx, srcTaint);                   \
 /* endif */								    \
     }                                                                       \
     FINISH(2);
@@ -2483,13 +2505,15 @@ HANDLE_OPCODE(OP_APUT_OBJECT /*vAA, vBB, vCC*/)
             }
         }
         ILOGV("+ APUT[%d]=0x%08x", GET_REGISTER(vsrc2), GET_REGISTER(vdst));
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */
+        int idx = GET_REGISTER(vsrc2);
+        u4 objTaint = GET_REGISTER_TAINT(vdst);
+/* endif */
         dvmSetObjectArrayElement(arrayObj,
                                  GET_REGISTER(vsrc2),
                                  (Object *)GET_REGISTER(vdst));
-/* ifdef WITH_TAINT_TRACKING */
-	SET_ARRAY_TAINT(arrayObj,
-		(GET_ARRAY_TAINT(arrayObj) |
-		 GET_REGISTER_TAINT(vdst)) );
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */
+	SET_ARRAY_ELEMENT_TAINT(arrayObj, idx, objTaint);
 /* endif */
     }
     FINISH(2);

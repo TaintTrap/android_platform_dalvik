@@ -72,6 +72,36 @@ void dvmTaintPropJniShutdown()
 #endif
 }
 
+// begin TAINT_ARRAY_ELEMENTS
+u4 getArrayTaint(ArrayObject* arr) {
+    u4 tag = TAINT_CLEAR;
+    if (arr->taint.tag==TAINT_CLEAR)
+        return tag;
+    int i;
+    for (i = 0; i < arr->length; i++) {
+        tag |= ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[i];
+    }
+    return tag;
+}
+
+void addArrayTaint(ArrayObject* arr, u4 tag) {
+    int i;
+    if (tag!=TAINT_CLEAR) {
+        if (arr->taint.tag==TAINT_CLEAR) {
+            ArrayObject* tagArr = dvmAllocPrimitiveArray('I', arr->length, ALLOC_DEFAULT);			  
+            int i;
+            for (i=0; i < arr->length; i++) ((int*)tagArr->contents)[i] = TAINT_CLEAR;
+            arr->taint.tag = tagArr;
+            Object* obj = &(tagArr->obj);
+            dvmReleaseTrackedAlloc((Object*) tagArr, NULL);
+        }
+        for (i = 0; i < arr->length; i++) {
+            ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[i] |= tag;
+        }
+    }
+}
+// end TAINT_ARRAY_ELEMENTS
+
 /* Returns the taint on an object.
  * - Currently only arrays and java.lang.String is supported
  */
@@ -87,7 +117,9 @@ u4 getObjectTaint(Object* obj, const char* descriptor)
 	/* Get the taint from the array */
 	arrObj = (ArrayObject*) obj;
 	if (arrObj != NULL) {
-	    return arrObj->taint.tag;
+// begin TAINT_ARRAY_ELEMENTS
+	    return getArrayTaint(arrObj);
+// end TAINT_ARRAY_ELEMENTS
 	}
     } 
     
@@ -95,7 +127,9 @@ u4 getObjectTaint(Object* obj, const char* descriptor)
 	arrObj = (ArrayObject*) dvmGetFieldObject(obj, 
 		gDvm.offJavaLangString_value);
 	if (arrObj != NULL) {
-	    return arrObj->taint.tag;
+// begin TAINT_ARRAY_ELEMENTS
+	    return getArrayTaint(arrObj);
+// end TAINT_ARRAY_ELEMENTS
 	} /* else, empty string? don't worry about it */
     } 
 
@@ -120,7 +154,9 @@ void addObjectTaint(Object* obj, const char* descriptor, u4 tag)
 	/* Get the taint from the array */
 	arrObj = (ArrayObject*) obj;
 	if (arrObj != NULL) {
-	    arrObj->taint.tag |= tag;
+// begin TAINT_ARRAY_ELEMENTS
+            addArrayTaint(arrObj, tag);
+// end TAINT_ARRAY_ELEMENTS
 	}
     } 
     
@@ -128,7 +164,9 @@ void addObjectTaint(Object* obj, const char* descriptor, u4 tag)
 	arrObj = (ArrayObject*) dvmGetFieldObject(obj, 
 		gDvm.offJavaLangString_value);
 	if (arrObj != NULL) {
-	    arrObj->taint.tag |= tag;
+// begin TAINT_ARRAY_ELEMENTS
+            addArrayTaint(arrObj, tag);
+// end TAINT_ARRAY_ELEMENTS
 	} /* else, empty string? don't worry about it */
     } 
 
@@ -170,7 +208,9 @@ void setReturnTaint(u4 tag, u4* rtaint, JValue* pResult,
 	     * this is not right for "[[" or "[L" */
 	    arrObj = (ArrayObject*) pResult->l;
 	    if (arrObj != NULL) {
-		arrObj->taint.tag |= tag;
+// begin TAINT_ARRAY_ELEMENTS
+                addArrayTaint(arrObj, tag);
+// end TAINT_ARRAY_ELEMENTS
 	    } /* else, method returning null pointer */
 	    break;
 	case 'L':
@@ -181,7 +221,9 @@ void setReturnTaint(u4 tag, u4* rtaint, JValue* pResult,
 		    arrObj = (ArrayObject*)dvmGetFieldObject(obj, 
 			    gDvm.offJavaLangString_value);
 		    if (arrObj != NULL) {
-			arrObj->taint.tag |= tag;
+// begin TAINT_ARRAY_ELEMENTS
+                        addArrayTaint(arrObj, tag);
+// end TAINT_ARRAY_ELEMENTS
 		    } /* else, empty string?, don't worry about it */
 		} else {
 		    /* TODO: What about classes derived from String? */

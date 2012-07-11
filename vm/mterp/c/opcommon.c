@@ -538,11 +538,15 @@ GOTO_TARGET_DECL(exceptionThrown);
                 NULL);                                                      \
             GOTO_exceptionThrown();                                         \
         }                                                                   \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */                     \
+        int idx = GET_REGISTER(vsrc2);                                      \
+        u4 idxTaint = GET_REGISTER_TAINT(vsrc2);                            \
+/* endif */                                                                 \
         SET_REGISTER##_regsize(vdst,                                        \
             ((_type*) arrayObj->contents)[GET_REGISTER(vsrc2)]);            \
-/* ifdef WITH_TAINT_TRACKING */						    \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */			    \
 	SET_REGISTER_TAINT##_regsize(vdst,                                  \
-	    (GET_ARRAY_TAINT(arrayObj)|GET_REGISTER_TAINT(vsrc2)));         \
+	    (getArrayElementTaint(arrayObj,idx)|idxTaint));                 \
 /* endif */								    \
         ILOGV("+ AGET[%d]=0x%x", GET_REGISTER(vsrc2), GET_REGISTER(vdst));  \
     }                                                                       \
@@ -568,12 +572,14 @@ GOTO_TARGET_DECL(exceptionThrown);
             GOTO_exceptionThrown();                                         \
         }                                                                   \
         ILOGV("+ APUT[%d]=0x%08x", GET_REGISTER(vsrc2), GET_REGISTER(vdst));\
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */                     \
+        int idx = GET_REGISTER(vsrc2);                                      \
+        u4 srcTaint = GET_REGISTER_TAINT##_regsize(vdst);                   \
+/* endif */                                                                 \
         ((_type*) arrayObj->contents)[GET_REGISTER(vsrc2)] =                \
             GET_REGISTER##_regsize(vdst);                                   \
-/* ifdef WITH_TAINT_TRACKING */						    \
-	SET_ARRAY_TAINT(arrayObj,                                           \
-		(GET_ARRAY_TAINT(arrayObj) |                                \
-		 GET_REGISTER_TAINT##_regsize(vdst)) );                     \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */			    \
+	SET_ARRAY_ELEMENT_TAINT(arrayObj, idx, srcTaint);                   \
 /* endif */								    \
     }                                                                       \
     FINISH(2);
