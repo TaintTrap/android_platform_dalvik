@@ -472,6 +472,24 @@ static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
 
 /* Object Taint interface */
 # define GET_ARRAY_TAINT(_arr)		      ((_arr)->taint.tag)
+// begin TAINT_ARRAY_ELEMENTS
+static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
+    if (arr->taint.tag!=TAINT_CLEAR) {
+        return ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[idx];
+    }
+    else
+        return TAINT_CLEAR;
+}
+# define SET_ARRAY_ELEMENT_TAINT(_arr, _idx, _val) do {                     \
+        if (((_arr)->taint.tag)==TAINT_CLEAR && _val!=TAINT_CLEAR) {        \
+            ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', _arr->length, ALLOC_DEFAULT); \
+            memset(tagArrayObj->contents, 0, 4 * _arr->length);             \
+            ((_arr)->taint.tag) = (u4)tagArrayObj;                          \
+            dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);            \
+        }                                                                   \
+        if (((_arr)->taint.tag)!=TAINT_CLEAR)                               \
+            ((u4*)((ArrayObject*)((_arr)->taint.tag))->contents)[_idx] = _val; \
+    } while(false)
 
 /* Return value taint (assumes rtaint variable is in scope */
 # define GET_RETURN_TAINT()		      (rtaint.tag)
@@ -486,11 +504,11 @@ static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
 # define SET_REGISTER_TAINT_DOUBLE(_idx, _val)	    ((void)0)
 # define GET_REGISTER_TAINT_AS_OBJECT(_idx)	    ((void)0)
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val)   ((void)0)
-# define GET_ARRAY_TAINT(_field)                    ((void)0)
-# define SET_ARRAY_TAINT(_field, _val)              ((void)0)
+# define SET_ARRAY_ELEMENT_TAINT(_field, _val)      ((void)0)
 # define GET_RETURN_TAINT()			    ((void)0)
 # define SET_RETURN_TAINT(_val)			    ((void)0)
 #endif
+// end TAINT_ARRAY_ELEMENTS
 
 #ifdef WITH_IMPLICIT_TRACKING
 # define IMPLICIT_BRANCH_TAINT(_val) if ((!implicitTaintMode) && ((u4)(_val) != TAINT_CLEAR)) { \

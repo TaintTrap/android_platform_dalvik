@@ -1080,6 +1080,11 @@ static void setCommandLineDefaults()
 #endif /*WITH_TAINT_TRACKING*/
 #endif
 
+// begin TAINT_ARRAY_ELEMENTS
+    // PJG: only works on portable interp
+    gDvm.executionMode = kExecutionModeInterpPortable;
+// end TAINT_ARRAY_ELEMENTS
+
     /*
      * SMP support is a compile-time define, but we may want to have
      * dexopt target a differently-configured device.
