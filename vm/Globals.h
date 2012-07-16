@@ -673,6 +673,10 @@ struct DvmGlobals {
 
     /* some RegisterMap statistics, useful during development */
     void*       registerMapStats;
+
+#ifdef WITH_TAINT_TRACKING
+    bool taintTarget;
+#endif /* WITH_TAINT_TRACKING */
 };
 
 extern struct DvmGlobals gDvm;

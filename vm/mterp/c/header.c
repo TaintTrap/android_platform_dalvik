@@ -532,9 +532,11 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
   implicitBranchPdom    = 0;                                            \
   prevInst              = OP_NOP;
 # define IMPLICIT_START_TAINTING(_val)                                  \
-  setImplicitTaintMode(&implicitTaintMode, true);                       \
-  implicitTaintTag = (u4)(_val);                                        \
-  implicitStartingFrame = true;
+    if (gDvm.taintTarget) {                                             \
+        setImplicitTaintMode(&implicitTaintMode, true);                 \
+        implicitTaintTag = (u4)(_val);                                  \
+        implicitStartingFrame = true;                                   \
+    }
 #else
 # define IMPLICIT_BRANCH_TAINT(_val) ((void)0)
 # define IMPLICIT_STOP_TAINTING(_reason) ((void)0)

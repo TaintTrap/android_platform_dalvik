@@ -458,6 +458,17 @@ static pid_t forkAndSpecializeCommon(const u4* args, bool isSystemServer)
         /* configure additional debug options */
         enableDebugFeatures(debugFlags);
 
+#ifdef WITH_IMPLICIT_TRACKING
+        LOGI("TaintLog: Zygote forkAndSpecializeCommon tid = %d uid = %d pid = %d\n", thread->systemTid, uid, pid);
+        if (!isSystemServer) {
+            bool taintTarget = (bool)args[5];
+            if (taintTarget) {
+                LOGI("TaintLog: Zygote forkAndSpecializeCommon gDvm.taintTarget before = %d after = %d\n", gDvm.taintTarget, taintTarget);
+                gDvm.taintTarget = taintTarget;
+            }
+        }
+#endif /* WITH_IMPLICIT_TRACKING */
+
         unsetSignalHandler();
         gDvm.zygote = false;
         if (!dvmInitAfterZygote()) {
@@ -515,7 +526,7 @@ static void Dalvik_dalvik_system_Zygote_forkSystemServer(
 const DalvikNativeMethod dvm_dalvik_system_Zygote[] = {
     { "fork",            "()I",
         Dalvik_dalvik_system_Zygote_fork },
-    { "forkAndSpecialize",            "(II[II[[I)I",
+    { "forkAndSpecialize",            "(II[II[[IZ)I",
         Dalvik_dalvik_system_Zygote_forkAndSpecialize },
     { "forkSystemServer",            "(II[II[[IJJ)I",
         Dalvik_dalvik_system_Zygote_forkSystemServer },

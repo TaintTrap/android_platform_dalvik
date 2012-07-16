@@ -88,10 +88,18 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
 
     methodClassDex = curMethod->clazz->pDvmDex;
 
-    LOGVV("threadid=%d: entry(%s) %s.%s pc=0x%x fp=%p ep=%d\n",
-        self->threadId, (interpState->nextMode == INTERP_STD) ? "STD" : "DBG",
-        curMethod->clazz->descriptor, curMethod->name, pc - curMethod->insns,
-        fp, interpState->entryPoint);
+#ifdef WITH_IMPLICIT_TRACKING
+    if (gDvm.taintTarget) {
+        LOGVV("TaintLog: dvmInterpretStd gDvm.taintTarget = %d, \
+systemTid=%d sysid=%d threadid=%d: entry(%s) %s.%s pc=0x%x fp=%p ep=%d\n",
+             gDvm.taintTarget,
+             self->systemTid,
+             dvmGetSysThreadId(),
+             self->threadId, (interpState->nextMode == INTERP_STD) ? "STD" : "DBG",
+             curMethod->clazz->descriptor, curMethod->name, pc - curMethod->insns,
+             fp, interpState->entryPoint);
+    }
+#endif /* WITH_IMPLICIT_TRACKING */
 
     /*
      * DEBUG: scramble this to ensure we're not relying on it.
