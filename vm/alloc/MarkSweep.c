@@ -381,7 +381,7 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
     if (obj->taint.tag) {
         ArrayObject* tagArray = (ArrayObject*)(obj->taint.tag);
         if (tagArray->obj.clazz==NULL || !dvmIsValidObject(tagArray)) {
-            LOGE("scanArrayObject failed to scan taint tag array\n");
+            LOGE("scanArrayObject failed to scan taint tag array: 0x%08x\n", tagArray);
             return;
         }
         markObject((Object *)tagArray, ctx);
