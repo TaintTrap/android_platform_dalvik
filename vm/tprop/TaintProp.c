@@ -89,9 +89,9 @@ void addArrayTaint(ArrayObject* arr, u4 tag) {
     if (tag!=TAINT_CLEAR) {
         if (arr->taint.tag==TAINT_CLEAR) {
             ArrayObject* tagArr = dvmAllocPrimitiveArray('I', arr->length, ALLOC_DEFAULT);	
-            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArr);		  
+            //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArr);		  
             int i;
-            for (i=0; i < arr->length; i++) ((int*)tagArr->contents)[i] = TAINT_CLEAR;
+            for (i=0; i < arr->length; i++) ((u4*)tagArr->contents)[i] = TAINT_CLEAR;
             arr->taint.tag = tagArr;
             Object* obj = &(tagArr->obj);
             dvmReleaseTrackedAlloc((Object*) tagArr, NULL);

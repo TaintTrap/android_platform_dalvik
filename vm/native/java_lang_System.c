@@ -20,6 +20,16 @@
 #include "Dalvik.h"
 #include "native/InternalNativePriv.h"
 
+// begin TAINT_ARRAY_ELEMENTS
+static void clearTaintTagArray(ArrayObject* arr) {
+    if (arr->taint.tag) {
+        ArrayObject* tagArray = (ArrayObject*)(arr->taint.tag);
+        int i;
+        for (i=0; i < arr->length; i++) ((u4*)tagArray->contents)[i] = TAINT_CLEAR;
+    }
+}
+// end TAINT_ARRAY_ELEMENTS
+
 /*
  * Call the appropriate copy function given the circumstances.
  */
@@ -157,12 +167,12 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
 #ifdef WITH_TAINT_TRACKING
         if (srcArray->taint.tag != TAINT_CLEAR && dstArray->taint.tag == TAINT_CLEAR) {
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', dstArray->length, ALLOC_DEFAULT);
-            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
+            //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
             memset(tagArrayObj->contents, 0, 4 * dstArray->length);
             dstArray->taint.tag = tagArrayObj;
             dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
 	}
-        if (dstPos == TAINT_CLEAR && dstArray->length == length) {
+        if (dstPos == 0 && dstArray->length == length) {
             /* entire array replaced */
             if (srcArray->taint.tag) {
                 ArrayObject* dstTagArrayObj = (ArrayObject*)(dstArray->taint.tag);
@@ -170,7 +180,9 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
                 memcpy((u1*)dstTagArrayObj->contents + dstPos * 4,
                     (const u1*)srcTagArrayObj->contents + srcPos * 4,
                     length * 4);
-            } else dstArray->taint.tag = 0;
+            } else {
+                clearTaintTagArray(dstArray);
+            }
         } else {
             if (srcArray->taint.tag) {
                 ArrayObject* dstTagArrayObj = (ArrayObject*)(dstArray->taint.tag);
@@ -210,12 +222,12 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
 #ifdef WITH_TAINT_TRACKING
         if (srcArray->taint.tag != TAINT_CLEAR && dstArray->taint.tag == TAINT_CLEAR) {
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', dstArray->length, ALLOC_DEFAULT);
-            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
+            //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
             memset(tagArrayObj->contents, 0, 4 * dstArray->length);
             dstArray->taint.tag = tagArrayObj;
             dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
 	}
-        if (dstPos == TAINT_CLEAR && dstArray->length == length) {
+        if (dstPos == 0 && dstArray->length == length) {
             /* entire array replaced */
             if (srcArray->taint.tag) {
                 ArrayObject* dstTagArrayObj = (ArrayObject*)(dstArray->taint.tag);
@@ -223,7 +235,9 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
                 memcpy((u1*)dstTagArrayObj->contents + dstPos * 4,
                     (const u1*)srcTagArrayObj->contents + srcPos * 4,
                     length * 4);
-            } else dstArray->taint.tag = 0;
+            } else {
+                clearTaintTagArray(dstArray);
+            }
         } else {
             if (srcArray->taint.tag) {
                 ArrayObject* dstTagArrayObj = (ArrayObject*)(dstArray->taint.tag);
@@ -288,12 +302,12 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
 #ifdef WITH_TAINT_TRACKING
         if (srcArray->taint.tag != TAINT_CLEAR && dstArray->taint.tag == TAINT_CLEAR) {
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', dstArray->length, ALLOC_DEFAULT);
-            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
+            //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
             memset(tagArrayObj->contents, 0, 4 * dstArray->length);
             dstArray->taint.tag = tagArrayObj;
             dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
 	}
-        if (dstPos == TAINT_CLEAR && dstArray->length == length) {
+        if (dstPos == 0 && dstArray->length == length) {
             /* entire array replaced */
             if (srcArray->taint.tag) {
                 ArrayObject* dstTagArrayObj = (ArrayObject*)(dstArray->taint.tag);
@@ -301,7 +315,9 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
                 memcpy((u1*)dstTagArrayObj->contents + dstPos * 4,
                     (const u1*)srcTagArrayObj->contents + srcPos * 4,
                     length * 4);
-            } else dstArray->taint.tag = 0;
+            } else {
+                clearTaintTagArray(dstArray);
+            }
         } else {
             if (srcArray->taint.tag) {
                 ArrayObject* dstTagArrayObj = (ArrayObject*)(dstArray->taint.tag);
