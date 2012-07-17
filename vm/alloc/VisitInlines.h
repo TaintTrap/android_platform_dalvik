@@ -120,6 +120,13 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
     assert(obj != NULL);
     assert(obj->clazz != NULL);
     (*visitor)(&obj->clazz, arg);
+// begin TAINT_ARRAY_ELEMENTS
+    ArrayObject *array = (ArrayObject *)obj;
+    if (array->taint.tag) {
+        ArrayObject* tagArray = (ArrayObject*)(array->taint.tag);
+        (*visitor)(&tagArray, arg);
+    }
+// end TAINT_ARRAY_ELEMENTS
     if (IS_CLASS_FLAG_SET(obj->clazz, CLASS_ISOBJECTARRAY)) {
         ArrayObject *array = (ArrayObject *)obj;
         Object **contents = (Object **)array->contents;
