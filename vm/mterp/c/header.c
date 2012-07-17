@@ -483,6 +483,7 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
 # define SET_ARRAY_ELEMENT_TAINT(_arr, _idx, _val) do {                     \
         if (((_arr)->taint.tag)==TAINT_CLEAR && _val!=TAINT_CLEAR) {        \
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', _arr->length, ALLOC_DEFAULT); \
+            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);      \
             memset(tagArrayObj->contents, 0, 4 * _arr->length);             \
             ((_arr)->taint.tag) = (u4)tagArrayObj;                          \
             dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);            \

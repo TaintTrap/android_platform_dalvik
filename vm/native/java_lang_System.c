@@ -157,6 +157,7 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
 #ifdef WITH_TAINT_TRACKING
         if (srcArray->taint.tag != TAINT_CLEAR && dstArray->taint.tag == TAINT_CLEAR) {
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', dstArray->length, ALLOC_DEFAULT);
+            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
             memset(tagArrayObj->contents, 0, 4 * dstArray->length);
             dstArray->taint.tag = tagArrayObj;
             dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
@@ -209,6 +210,7 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
 #ifdef WITH_TAINT_TRACKING
         if (srcArray->taint.tag != TAINT_CLEAR && dstArray->taint.tag == TAINT_CLEAR) {
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', dstArray->length, ALLOC_DEFAULT);
+            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
             memset(tagArrayObj->contents, 0, 4 * dstArray->length);
             dstArray->taint.tag = tagArrayObj;
             dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
@@ -286,6 +288,7 @@ static void Dalvik_java_lang_System_arraycopy(const u4* args, JValue* pResult)
 #ifdef WITH_TAINT_TRACKING
         if (srcArray->taint.tag != TAINT_CLEAR && dstArray->taint.tag == TAINT_CLEAR) {
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', dstArray->length, ALLOC_DEFAULT);
+            LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
             memset(tagArrayObj->contents, 0, 4 * dstArray->length);
             dstArray->taint.tag = tagArrayObj;
             dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
