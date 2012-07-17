@@ -124,6 +124,10 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
     ArrayObject *array = (ArrayObject *)obj;
     if (array->taint.tag) {
         ArrayObject* tagArray = (ArrayObject*)(array->taint.tag);
+        if (tagArray->obj.clazz==NULL || !dvmIsValidObject(tagArray)) {
+            LOGE("visitArrayObject failed to visit taint tag array: 0x%08x\n", tagArray);
+            return;
+        }
         (*visitor)(&tagArray, arg);
     }
 // end TAINT_ARRAY_ELEMENTS
