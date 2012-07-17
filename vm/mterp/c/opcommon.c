@@ -625,10 +625,12 @@ GOTO_TARGET_DECL(exceptionThrown);
         ILOGV("+ IGET '%s'=0x%08llx", ifield->field.name,                   \
             (u8) GET_REGISTER##_regsize(vdst));                             \
         UPDATE_FIELD_GET(&ifield->field);                                   \
-/* ifdef WITH_TAINT_TRACKING */                                             \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */                     \
+/*	SET_REGISTER_TAINT##_regsize(vdst,*/                                \
+/*	    (GET_REGISTER_TAINT(vsrc1)|*/                                   \
+/*	     dvmGetFieldTaint##_ftype(obj,ifield->byteOffset)) );*/         \
 	SET_REGISTER_TAINT##_regsize(vdst,                                  \
-	    (GET_REGISTER_TAINT(vsrc1)|                                     \
-	     dvmGetFieldTaint##_ftype(obj,ifield->byteOffset)) );           \
+	    (dvmGetFieldTaint##_ftype(obj,ifield->byteOffset)) );           \
 /* endif */                                                                 \
     }                                                                       \
     FINISH(2);
@@ -648,12 +650,14 @@ GOTO_TARGET_DECL(exceptionThrown);
         SET_REGISTER##_regsize(vdst, dvmGetField##_ftype(obj, ref));        \
         ILOGV("+ IGETQ %d=0x%08llx", ref,                                   \
             (u8) GET_REGISTER##_regsize(vdst));                             \
-/* ifdef WITH_TAINT_TRACKING */                                             \
+/* ifdef WITH_TAINT_TRACKING && TAINT_ARRAY_ELEMENTS */                     \
 	/*TLOGW("|IGETQ not supported by taint tracking!!!");*/             \
 	/* compile flag WITH_TAINT_ODEX controls this now */                \
+/*	SET_REGISTER_TAINT##_regsize(vdst,*/                                \
+/*	    (GET_REGISTER_TAINT(vsrc1)|*/                                   \
+/*	     dvmGetFieldTaint##_ftype(obj,ref)) );*/                        \
 	SET_REGISTER_TAINT##_regsize(vdst,                                  \
-	    (GET_REGISTER_TAINT(vsrc1)|                                     \
-	     dvmGetFieldTaint##_ftype(obj,ref)) );                          \
+	    (dvmGetFieldTaint##_ftype(obj,ref)) );                          \
 /* endif */                                                                 \
     }                                                                       \
     FINISH(2);
