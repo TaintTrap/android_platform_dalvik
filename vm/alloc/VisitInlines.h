@@ -133,7 +133,7 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
     ArrayObject *array = (ArrayObject *)obj;
     if (array->taint.tag) {
         ArrayObject *tagArray = (ArrayObject*)(array->taint.tag);
-        (*visitor)(&tagArray->obj, arg);
+        (*visitor)(&tagArray, arg);
     }
 // end TAINT_ARRAY_ELEMENTS
 }

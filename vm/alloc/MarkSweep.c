@@ -380,7 +380,7 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
     // PJG: if we have a taint tag array, mark it
     if (obj->taint.tag) {
         ArrayObject* tagArray = (ArrayObject*)(obj->taint.tag);
-        markObject(&tagArray->obj, ctx);
+        markObject((Object *)tagArray, ctx);
     }
 // end TAINT_ARRAY_ELEMENTS
 }

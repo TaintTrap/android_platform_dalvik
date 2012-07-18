@@ -159,7 +159,7 @@ static bool javaLangString_charAt(u4 arg0, u4 arg1, u4 arg2, u4 arg3,
 	// rtaint <- taint(string) | taint(index)
 	if (chars->taint.tag != 0) {
             ArrayObject* tagArray = (ArrayObject*)chars->taint.tag;
-            rtaint->tag = ((int*)tagArray->contents)[arg1 + offset]; // PJG: arg1+offset
+            rtaint->tag = ((u4*)tagArray->contents)[arg1 + offset]; // PJG: arg1+offset
         }
 	else
             rtaint->tag = 0;
