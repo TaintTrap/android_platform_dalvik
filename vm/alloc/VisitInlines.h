@@ -120,17 +120,6 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
     assert(obj != NULL);
     assert(obj->clazz != NULL);
     (*visitor)(&obj->clazz, arg);
-// begin TAINT_ARRAY_ELEMENTS
-    ArrayObject *array = (ArrayObject *)obj;
-    if (array->taint.tag) {
-        ArrayObject* tagArray = (ArrayObject*)(array->taint.tag);
-        if (tagArray->obj.clazz==NULL || !dvmIsValidObject(tagArray)) {
-            LOGE("visitArrayObject failed to visit taint tag array: 0x%08x\n", tagArray);
-            return;
-        }
-        (*visitor)(&tagArray, arg);
-    }
-// end TAINT_ARRAY_ELEMENTS
     if (IS_CLASS_FLAG_SET(obj->clazz, CLASS_ISOBJECTARRAY)) {
         ArrayObject *array = (ArrayObject *)obj;
         Object **contents = (Object **)array->contents;
@@ -139,6 +128,14 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
             (*visitor)(&contents[i], arg);
         }
     }
+// begin TAINT_ARRAY_ELEMENTS
+    // PJG: if we have a taint tag array, visit it
+    ArrayObject *array = (ArrayObject *)obj;
+    if (array->taint.tag) {
+        ArrayObject *tagArray = (ArrayObject*)(array->taint.tag);
+        (*visitor)(&tagArray->obj, arg);
+    }
+// end TAINT_ARRAY_ELEMENTS
 }
 
 /*
