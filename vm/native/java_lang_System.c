@@ -53,9 +53,13 @@ static void copyArrayTaint(ArrayObject *dstArray, int dstPos,
         ArrayObject *srcArray, int srcPos, int length, bool sameArray) {
     if (srcArray->taint.tag != TAINT_CLEAR && dstArray->taint.tag == TAINT_CLEAR) {
         ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', dstArray->length, ALLOC_DEFAULT);
+        if (tagArrayObj==NULL) {
+            LOGE("Unable to allocate taint tag array!\n");
+            return;
+        }
         //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
         memset(tagArrayObj->contents, 0, 4 * dstArray->length);
-        dstArray->taint.tag = tagArrayObj;
+        dstArray->taint.tag = (u4)tagArrayObj;
         dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
     }
     if (srcArray->taint.tag) {

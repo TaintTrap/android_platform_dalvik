@@ -77,7 +77,7 @@ u4 getArrayTaint(ArrayObject* arr) {
     u4 tag = TAINT_CLEAR;
     if (arr->taint.tag==TAINT_CLEAR)
         return tag;
-    int i;
+    u4 i;
     for (i = 0; i < arr->length; i++) {
         tag |= ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[i];
     }
@@ -85,17 +85,19 @@ u4 getArrayTaint(ArrayObject* arr) {
 }
 
 void addArrayTaint(ArrayObject* arr, u4 tag) {
-    int i;
     if (tag!=TAINT_CLEAR) {
         if (arr->taint.tag==TAINT_CLEAR) {
-            ArrayObject* tagArr = dvmAllocPrimitiveArray('I', arr->length, ALLOC_DEFAULT);	
-            //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArr);		  
-            int i;
-            for (i=0; i < arr->length; i++) ((u4*)tagArr->contents)[i] = TAINT_CLEAR;
-            arr->taint.tag = tagArr;
-            Object* obj = &(tagArr->obj);
+            ArrayObject* tagArr = dvmAllocPrimitiveArray('I', arr->length, ALLOC_DEFAULT);
+            if (tagArr==NULL) {
+                LOGE("Unable to allocate taint tag array!\n");
+                return;
+            }	
+            //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArr);
+	    memset(tagArr->contents, 0, 4 * arr->length);
+            arr->taint.tag = (u4)tagArr;
             dvmReleaseTrackedAlloc((Object*) tagArr, NULL);
         }
+        u4 i;
         for (i = 0; i < arr->length; i++) {
             ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[i] |= tag;
         }
