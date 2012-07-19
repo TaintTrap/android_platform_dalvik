@@ -39,6 +39,10 @@ endif
 ifeq ($(WITH_TAINT_FAST),true)
   LOCAL_CFLAGS += -DWITH_TAINT_FAST
 endif
+# PJG: GC taint tag arrays?
+ifeq ($(DISABLE_TAINT_ARRAY_GC),true)
+  LOCAL_CFLAGS += -DDISABLE_TAINT_ARRAY_GC
+endif
 
 #
 # Optional features.  These may impact the size or performance of the VM.

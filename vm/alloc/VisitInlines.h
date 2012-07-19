@@ -128,6 +128,7 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
             (*visitor)(&contents[i], arg);
         }
     }
+#ifndef DISABLE_TAINT_ARRAY_GC
 // begin TAINT_ARRAY_ELEMENTS
     // PJG: if we have a taint tag array, visit it
     ArrayObject *array = (ArrayObject *)obj;
@@ -136,6 +137,7 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
         (*visitor)(&tagArray, arg);
     }
 // end TAINT_ARRAY_ELEMENTS
+#endif /*DISABLE_TAINT_ARRAY_GC*/
 }
 
 /*
