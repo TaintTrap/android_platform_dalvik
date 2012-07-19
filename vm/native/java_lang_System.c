@@ -56,9 +56,7 @@ static void copyArrayTaint(ArrayObject *dstArray, int dstPos,
         //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
         memset(tagArrayObj->contents, 0, 4 * dstArray->length);
         dstArray->taint.tag = tagArrayObj;
-#ifndef DISABLE_TAINT_ARRAY_GC
         dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
-#endif /*DISABLE_TAINT_ARRAY_GC*/
     }
     if (srcArray->taint.tag) {
         ArrayObject* dstTagArrayObj = (ArrayObject*)(dstArray->taint.tag);

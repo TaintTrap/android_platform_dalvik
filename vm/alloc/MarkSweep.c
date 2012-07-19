@@ -376,7 +376,6 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
             markObject(contents[i], ctx);
         }
     }
-#ifndef DISABLE_TAINT_ARRAY_GC
 // begin TAINT_ARRAY_ELEMENTS
     // PJG: if we have a taint tag array, mark it
     if (obj->taint.tag) {
@@ -384,7 +383,6 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
         markObject((Object *)tagArray, ctx);
     }
 // end TAINT_ARRAY_ELEMENTS
-#endif /*DISABLE_TAINT_ARRAY_GC*/
 }
 
 /*

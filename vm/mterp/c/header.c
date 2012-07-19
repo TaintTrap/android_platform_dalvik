@@ -435,18 +435,6 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
     else
         return TAINT_CLEAR;
 }
-#ifdef DISABLE_TAINT_ARRAY_GC
-# define SET_ARRAY_ELEMENT_TAINT(_arr, _idx, _val) do {                     \
-        if (((_arr)->taint.tag)==TAINT_CLEAR && _val!=TAINT_CLEAR) {        \
-            ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', _arr->length, ALLOC_DEFAULT); \
-            /*LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);*/      \
-            memset(tagArrayObj->contents, 0, 4 * _arr->length);             \
-            ((_arr)->taint.tag) = (u4)tagArrayObj;                          \
-        }                                                                   \
-        if (((_arr)->taint.tag)!=TAINT_CLEAR)                               \
-            ((u4*)((ArrayObject*)((_arr)->taint.tag))->contents)[_idx] = _val; \
-    } while(false)
-#else
 # define SET_ARRAY_ELEMENT_TAINT(_arr, _idx, _val) do {                     \
         if (((_arr)->taint.tag)==TAINT_CLEAR && _val!=TAINT_CLEAR) {        \
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', _arr->length, ALLOC_DEFAULT); \
@@ -458,7 +446,6 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
         if (((_arr)->taint.tag)!=TAINT_CLEAR)                               \
             ((u4*)((ArrayObject*)((_arr)->taint.tag))->contents)[_idx] = _val; \
     } while(false)
-#endif /*DISABLE_TAINT_ARRAY_GC*/
 
 /* Return value taint (assumes rtaint variable is in scope */
 # define GET_RETURN_TAINT()		      (rtaint.tag)

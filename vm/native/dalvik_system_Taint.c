@@ -54,9 +54,7 @@ static void addArrayTaint(ArrayObject* arr, u4 tag) {
             for (i=0; i < arr->length; i++) ((u4*)tagArr->contents)[i] = TAINT_CLEAR;
             arr->taint.tag = tagArr;
             Object* obj = &(tagArr->obj);
-#ifndef DISABLE_TAINT_ARRAY_GC
             dvmReleaseTrackedAlloc((Object*) tagArr, NULL);
-#endif /*DISABLE_TAINT_ARRAY_GC*/
         }
         for (i = 0; i < arr->length; i++) {
             ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[i] |= tag;
