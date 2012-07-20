@@ -131,8 +131,8 @@ static void visitArrayObject(Visitor *visitor, Object *obj, void *arg)
 // begin TAINT_ARRAY_ELEMENTS
     // PJG: if we have a taint tag array, visit it
     ArrayObject *array = (ArrayObject *)obj;
-    if (array->taint.tag) {
-        ArrayObject *tagArray = (ArrayObject*)(array->taint.tag);
+    if (array->taint) {
+        ArrayObject *tagArray = (ArrayObject*)(array->taint);
         (*visitor)(&tagArray, arg);
     }
 // end TAINT_ARRAY_ELEMENTS

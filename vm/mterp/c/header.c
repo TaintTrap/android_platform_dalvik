@@ -429,14 +429,14 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 /* Object Taint interface */
 // begin TAINT_ARRAY_ELEMENTS
 static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
-    if (arr->taint.tag!=TAINT_CLEAR) {
-        return ((u4*)((ArrayObject*)(arr->taint.tag))->contents)[idx];
+    if (arr->taint) {
+        return ((u4*)(arr->taint)->contents)[idx];
     }
     else
         return TAINT_CLEAR;
 }
 # define SET_ARRAY_ELEMENT_TAINT(_arr, _idx, _val) do {                     \
-        if (((_arr)->taint.tag)==TAINT_CLEAR && _val!=TAINT_CLEAR) {        \
+        if (!((_arr)->taint) && _val!=TAINT_CLEAR) {                        \
             ArrayObject* tagArrayObj = dvmAllocPrimitiveArray('I', _arr->length, ALLOC_DEFAULT); \
             if (tagArrayObj==NULL) {                                        \
                 LOGE("Unable to allocate taint tag array!\n");              \
@@ -444,12 +444,12 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
             else {                                                          \
                 /*LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);*/      \
                 memset(tagArrayObj->contents, 0, 4 * _arr->length);         \
-                ((_arr)->taint.tag) = (u4)tagArrayObj;                      \
+                ((_arr)->taint) = tagArrayObj;                              \
                 dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);        \
             }                                                               \
         }                                                                   \
-        if (((_arr)->taint.tag)!=TAINT_CLEAR)                               \
-            ((u4*)((ArrayObject*)((_arr)->taint.tag))->contents)[_idx] = _val; \
+        if ((_arr)->taint)                                                  \
+            ((u4*)((_arr)->taint)->contents)[_idx] = _val;                  \
     } while(false)
 
 /* Return value taint (assumes rtaint variable is in scope */
