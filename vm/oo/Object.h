@@ -309,7 +309,10 @@ struct ArrayObject {
     u4              length;
 
 #ifdef WITH_TAINT_TRACKING
-    Taint           taint;
+// begin TAINT_ARRAY_ELEMENTS
+//    Taint           taint;
+    ArrayObject* taint;
+// end TAINT_ARRAY_ELEMENTS
 #endif
 
     /*

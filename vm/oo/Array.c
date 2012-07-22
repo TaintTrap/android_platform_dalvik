@@ -64,7 +64,7 @@ ArrayObject* dvmAllocArray(ClassObject* arrayClass, size_t length,
         DVM_OBJECT_INIT(&newArray->obj, arrayClass);
         newArray->length = length;
 #ifdef WITH_TAINT_TRACKING
-        newArray->taint.tag = TAINT_CLEAR;
+        newArray->taint = NULL;
 #endif
         LOGVV("AllocArray: %s [%d] (%d)\n",
             arrayClass->descriptor, (int) length, (int) size);

@@ -976,8 +976,8 @@ static size_t scavengeArrayObject(ArrayObject *array)
     }
 // begin TAINT_ARRAY_ELEMENTS
     // PJG: if we have a taint tag array, scavenge it
-    if (array->taint.tag) {
-        ArrayObject* tagArray = (ArrayObject*)(array->taint.tag);
+    if (array->taint) {
+        ArrayObject* tagArray = (ArrayObject*)(array->taint);
         scavengeReference((Object **) tagArray);
     }
 // end TAINT_ARRAY_ELEMENTS
