@@ -332,13 +332,38 @@ static inline s8 getRegisterTaint(const u4* fp, int idx)
     }
     return fp[idx];
 }
-#endif
+#endif /* WITH_TAINT_TRACKING */
 
 #ifdef WITH_IMPLICIT_TRACKING
 static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
   *taintMode = mode;
 }
-#endif
+
+#define TAINT_STATS_DUMP_THRESHOLD 100000
+
+#define updateTaintStats(_type, _val)                                   \
+    if ((u4)(_val) != TAINT_CLEAR) {                                    \
+        if (gDvm.statsTainted##_type == 0) {                            \
+            gDvm.statsTotal##_type = 0; /* reset total when taint starts */ \
+        }                                                               \
+        gDvm.statsTainted##_type++;                                     \
+    }                                                                   \
+    gDvm.statsTotal##_type++;                                           \
+    if (gDvm.statsTainted##_type &&                                     \
+        (gDvm.statsTotal##_type % TAINT_STATS_DUMP_THRESHOLD == 0)) {   \
+        printTaintStats();                                              \
+    }                                                                   \
+
+static inline void printTaintStats()
+{
+    LOG(LOG_VERBOSE, LOG_TAG"t", "STATS [Tainted/Total] Reg: %d/%d RegWide: %d/%d Arr: %d/%d RetArr: %d/%d\n",
+        gDvm.statsTaintedReg, gDvm.statsTotalReg,
+        gDvm.statsTaintedRegWide, gDvm.statsTotalRegWide,
+        gDvm.statsTaintedArr, gDvm.statsTotalArr,
+        gDvm.statsTaintedRetArr, gDvm.statsTotalRetArr);
+}
+
+#endif /* WITH_IMPLICIT_TRACKING */
 
 /*
  * If enabled, validate the register number on every access.  Otherwise,
@@ -447,11 +472,12 @@ static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
 /* Core get and set macros */
 # define GET_REGISTER_TAINT(_idx)	     (fp[((_idx)<<1)+1])
 #ifdef WITH_IMPLICIT_TRACKING
-# define SET_REGISTER_TAINT(_idx, _val)	     (fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag))
-# define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
-	                                      fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag))
-# define SET_ARRAY_TAINT(_arr, _val)	      ((_arr)->taint.tag = (u4)(_val | implicitTaintTag))
-# define SET_RETURN_TAINT(_val)		      (rtaint.tag = (u4)(_val | implicitTaintTag))
+# define SET_REGISTER_TAINT(_idx, _val)	     fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag); \
+                                             updateTaintStats(Reg, (u4)(_val | implicitTaintTag))
+# define SET_REGISTER_TAINT_WIDE(_idx, _val) fp[((_idx)<<1)+1] = fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag); \
+                                             updateTaintStats(RegWide, (u4)(_val | implicitTaintTag))
+# define SET_RETURN_TAINT(_val)		           rtaint.tag = (u4)(_val | implicitTaintTag); \
+                                             updateTaintStats(RetArr, (u4)(_val | implicitTaintTag))
 #else
 # define SET_REGISTER_TAINT(_idx, _val)	     (fp[((_idx)<<1)+1] = (u4)(_val))
 # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
@@ -493,6 +519,7 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
                 dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);        \
             }                                                               \
         }                                                                   \
+        updateTaintStats(Arr, _val);                                        \
         if ((_arr)->taint)                                                  \
             ((u4*)((_arr)->taint)->contents)[_idx] = _val;                  \
     } while(false)

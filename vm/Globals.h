@@ -676,6 +676,15 @@ struct DvmGlobals {
 
 #ifdef WITH_TAINT_TRACKING
     bool taintTarget;
+    /* Stats counters */
+    int  statsTotalReg;
+    int  statsTaintedReg;
+    int  statsTotalRegWide;
+    int  statsTaintedRegWide;
+    int  statsTotalArr;
+    int  statsTaintedArr;
+    int  statsTotalRetArr;
+    int  statsTaintedRetArr;
 #endif /* WITH_TAINT_TRACKING */
 };
 
