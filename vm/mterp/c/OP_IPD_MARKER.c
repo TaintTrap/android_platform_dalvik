@@ -1,9 +1,9 @@
 HANDLE_OPCODE(OP_IPD_MARKER)
 {
 #ifdef WITH_IMPLICIT_TRACKING
-  u4 pdom = FETCH(1);          /* high-order 16 bits */
   u4 id   = FETCH(2);          /* low-order 16 bits */
 #ifdef IMPLICIT_DEBUG
+  u4 pdom = FETCH(1);          /* high-order 16 bits */
   TLOGV("|ipd-marker id/%04x pdom/%04x", id, pdom);
   TLOGD("[IFLOW] [ipd-marker] implicitTaintMode = %s implicitStartingFrame = %s implicitBranchPdom = %04x",
         BOOL(implicitTaintMode), 

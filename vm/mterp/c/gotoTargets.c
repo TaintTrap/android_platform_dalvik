@@ -567,10 +567,10 @@ GOTO_TARGET(returnFromMethod)
             GOTO_bail();
         }
 
-#ifdef WITH_IMPLICIT_TRACKING
+#ifdef IMPLICIT_DEBUG
         /* save previous method for printing*/
         const Method* prevMethod = curMethod;
-#endif  /* WITH_IMPLICIT_TRACKING */
+#endif  /* IMPLICIT_DEBUG */
 
         /* update thread FP, and reset local variables */
         self->curFrame = fp;

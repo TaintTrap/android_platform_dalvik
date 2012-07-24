@@ -28,7 +28,7 @@ bool INTERP_FUNC_NAME(Thread* self, InterpState* interpState)
 
     const u2* pc;               // program counter
     u4* fp;                     // frame pointer
-    u2 inst;                    // current instruction
+    u2 inst = OP_NOP;           // current instruction
     /* instruction decoding */
     u2 ref;                     // 16-bit quantity fetched directly
     u2 vsrc1, vsrc2, vdst;      // usually used for register indexes
