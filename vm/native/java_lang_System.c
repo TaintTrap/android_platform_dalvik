@@ -60,6 +60,7 @@ static void copyArrayTaint(ArrayObject *dstArray, int dstPos,
         //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);
         memset(tagArrayObj->contents, 0, 4 * dstArray->length);
         dstArray->taint = tagArrayObj;
+        dvmWriteBarrierObject((Object *) dstArray);
         dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);
     }
     if (srcArray->taint) {
