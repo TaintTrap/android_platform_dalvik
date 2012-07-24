@@ -445,6 +445,7 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
                 /*LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArrayObj);*/      \
                 memset(tagArrayObj->contents, 0, 4 * _arr->length);         \
                 ((_arr)->taint) = tagArrayObj;                              \
+                dvmWriteBarrierObject((Object *)(_arr));                    \
                 dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);        \
             }                                                               \
         }                                                                   \

@@ -55,6 +55,7 @@ static void addArrayTaint(ArrayObject* arr, u4 tag) {
             //LOGE("Allocating taint tag array: 0x%08x\n", (unsigned int)tagArr);	
 	    memset(tagArr->contents, 0, 4 * arr->length);
             arr->taint = tagArr;
+            dvmWriteBarrierObject((Object *) arr);
             dvmReleaseTrackedAlloc((Object*) tagArr, NULL);
         }
         u4 i;
