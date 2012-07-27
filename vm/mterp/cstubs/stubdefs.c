@@ -37,6 +37,7 @@
 
 #ifdef WITH_TAINT_TRACKING
 #define rtaint			glue->rtaint
+#define updateTaintStats(x, y)  ((void)0)
 #endif
 
 /* ugh */

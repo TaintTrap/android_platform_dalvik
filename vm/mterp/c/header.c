@@ -307,6 +307,14 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 }
 #endif
 
+#define updateTaintStats(_type, _val) updateTaintStatsDetailed(, _val) // _type is empty -> simple/aggregate stats
+/* #define updateTaintStats(_type, _val) updateTaintStatsDetailed(_type, _val) // Detailed stats */
+#define updateTaintStatsDetailed(_type, _val)                           \
+    if ((u4)(_val) != TAINT_CLEAR) {                                    \
+        statsTainted##_type++;                                          \
+    }                                                                   \
+    statsTotal##_type++;
+
 /*
  * If enabled, validate the register number on every access.  Otherwise,
  * just do an array access.
@@ -412,10 +420,12 @@ static inline void putDoubleToArrayTaint(u4* ptr, int idx, double dval)
 #ifdef WITH_TAINT_TRACKING
 /* Core get and set macros */
 # define GET_REGISTER_TAINT(_idx)	     (fp[((_idx)<<1)+1])
-# define SET_REGISTER_TAINT(_idx, _val)	     (fp[((_idx)<<1)+1] = (u4)(_val))
+# define SET_REGISTER_TAINT(_idx, _val)	     fp[((_idx)<<1)+1] = (u4)(_val); \
+                                              updateTaintStats(Reg, _val)
 # define GET_REGISTER_TAINT_WIDE(_idx)       (fp[((_idx)<<1)+1])
-# define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
-	                                      fp[((_idx)<<1)+3] = (u4)(_val))
+# define SET_REGISTER_TAINT_WIDE(_idx, _val) fp[((_idx)<<1)+1] = \
+	                                      fp[((_idx)<<1)+3] = (u4)(_val); \
+                                          updateTaintStats(RegWide, _val)
 /* Alternate interfaces to help dereference register width */
 # define GET_REGISTER_TAINT_INT(_idx)	          GET_REGISTER_TAINT(_idx)
 # define SET_REGISTER_TAINT_INT(_idx, _val)       SET_REGISTER_TAINT(_idx, _val)
@@ -449,13 +459,15 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
                 dvmReleaseTrackedAlloc((Object*) tagArrayObj, NULL);        \
             }                                                               \
         }                                                                   \
+        updateTaintStats(Arr, _val);                                        \
         if ((_arr)->taint)                                                  \
             ((u4*)((_arr)->taint)->contents)[_idx] = _val;                  \
     } while(false)
 
 /* Return value taint (assumes rtaint variable is in scope */
 # define GET_RETURN_TAINT()		      (rtaint.tag)
-# define SET_RETURN_TAINT(_val)		      (rtaint.tag = (u4)(_val))
+# define SET_RETURN_TAINT(_val)		      rtaint.tag = (u4)(_val); \
+                                           updateTaintStats(Ret, _val)
 #else
 # define GET_REGISTER_TAINT(_idx)		    ((void)0)
 # define SET_REGISTER_TAINT(_idx, _val)		    ((void)0)

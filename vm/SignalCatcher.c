@@ -308,6 +308,9 @@ static void* signalCatcherThreadStart(void* arg)
 #if defined(WITH_JIT) && defined(WITH_JIT_TUNING)
     sigaddset(&mask, SIGUSR2);
 #endif
+#ifdef WITH_TAINT_TRACKING
+    sigaddset(&mask, SIGALRM);
+#endif
 
     while (true) {
         int rcvd;
@@ -354,6 +357,11 @@ loop:
 #if defined(WITH_JIT) && defined(WITH_JIT_TUNING)
         case SIGUSR2:
             handleSigUsr2();
+            break;
+#endif
+#ifdef WITH_TAINT_TRACKING
+        case SIGALRM:
+            handleSigTaintStats();
             break;
 #endif
         default:

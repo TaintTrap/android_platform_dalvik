@@ -94,3 +94,8 @@
             GOTO_bail_switch();                                             \
         }                                                                   \
     }
+
+#ifdef WITH_TAINT_TRACKING
+#define statsTainted            self->statsTainted
+#define statsTotal              self->statsTotal
+#endif

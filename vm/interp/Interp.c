@@ -1325,7 +1325,11 @@ void dvmInterpret(Thread* self, const Method* method, JValue* pResult)
      */
 #ifdef WITH_TAINT_TRACKING
     interpState.rtaint.tag = TAINT_CLEAR;
+    /* Stats counters */
+    self->statsTainted     = 0;
+    self->statsTotal       = 0;
 #endif
+
     interpState.method = method;
     interpState.fp = (u4*) self->curFrame;
     interpState.pc = method->insns;

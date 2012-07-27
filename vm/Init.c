@@ -1129,6 +1129,9 @@ static void blockSignals()
 #if defined(WITH_JIT) && defined(WITH_JIT_TUNING)
     sigaddset(&mask, SIGUSR2);      // used to investigate JIT internals
 #endif
+#ifdef WITH_TAINT_TRACKING
+    sigaddset(&mask, SIGALRM);
+#endif
     //sigaddset(&mask, SIGPIPE);
     cc = sigprocmask(SIG_BLOCK, &mask, NULL);
     assert(cc == 0);
@@ -1143,6 +1146,30 @@ static void blockSignals()
         assert(cc == 0);
     }
 }
+
+#ifdef WITH_TAINT_TRACKING
+bool dvmInitTaintStats()
+{
+    /* Stats lock */
+    dvmInitMutex(&gDvm.statsLock);
+    /* Stats counters */
+    gDvm.statsTotal          = 0;
+    gDvm.statsTainted        = 0;
+    gDvm.statsPrevTainted    = 0;
+    gDvm.statsPrevTainted    = 0;
+    /* Detailed counters */
+    gDvm.statsTotalReg       = 0;
+    gDvm.statsTaintedReg     = 0;
+    gDvm.statsTotalRegWide   = 0;
+    gDvm.statsTaintedRegWide = 0;
+    gDvm.statsTotalArr       = 0;
+    gDvm.statsTaintedArr     = 0;
+    gDvm.statsTotalRet       = 0;
+    gDvm.statsTaintedRet     = 0;
+
+    return true;
+}
+#endif
 
 /*
 #ifdef WITH_TAINT_TRACKING
@@ -1298,6 +1325,10 @@ int dvmStartup(int argc, const char* const argv[], bool ignoreUnrecognized,
         goto fail;
     if (!dvmProfilingStartup())
         goto fail;
+#ifdef WITH_TAINT_TRACKING
+    if (!dvmInitTaintStats())
+        goto fail;
+#endif /* WITH_TAINT_TRACKING */
 
     /* make sure we got these [can this go away?] */
     assert(gDvm.classJavaLangClass != NULL);
