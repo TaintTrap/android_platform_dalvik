@@ -585,7 +585,7 @@ GOTO_TARGET(returnFromMethod)
         if (implicitTaintMode && implicitStartingFrame) {
             if (0xFFFF == implicitBranchPdom) { /* 0xFFFF is special case of method with return + throw(s) with no single IPD */
 #ifdef IMPLICIT_DEBUG
-                TLOGD("[IFLOW] [INFO] returnFromMethod %s.%s %s, no unique IPD, keeping Taint Mode ON  (return+throw(s) exist)", 
+                TLOGD("[IFLOW] [INFO] returnFromMethod %s.%s %s, no unique IPD, keeping Taint Mode ON  (return+throw(s) exist)",
                       prevMethod->clazz->descriptor, prevMethod->name, prevMethod->shorty);
 #endif /* IMPLICIT_DEBUG */
                 /* IMPLICIT_STOP_TAINTING("returnFromMethod"); */

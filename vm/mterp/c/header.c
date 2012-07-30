@@ -16,7 +16,7 @@
 
 // VALI
 /* #define LOG_NDEBUG 0 */
-//#define IMPLICIT_DEBUG
+/* #define IMPLICIT_DEBUG */
 //#define WITH_IMPLICIT_TRACKING
 
 /* common includes */
@@ -152,6 +152,7 @@
                 self->threadId, debugStrBuf);                               \
     } while(false)
 void dvmDumpRegs(const Method* method, const u4* framePtr, bool inOnly);
+/* # define DUMP_REGS(_meth, _frame, _inOnly) if (implicitTaintMode) dvmDumpRegs(_meth, _frame, _inOnly) */
 # define DUMP_REGS(_meth, _frame, _inOnly) dvmDumpRegs(_meth, _frame, _inOnly)
 static const char kSpacing[] = "            ";
 #else
@@ -339,29 +340,19 @@ static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
   *taintMode = mode;
 }
 
-#define TAINT_STATS_DUMP_THRESHOLD 100000
-
-#define updateTaintStats(_type, _val)                                   \
+#define updateTaintStats(_type, _val) updateTaintStatsDetailed(, _val) // _type is empty -> simple/aggregate stats
+/* #define updateTaintStats(_type, _val) updateTaintStatsDetailed(_type, _val) // Detailed stats */
+#define updateTaintStatsDetailed(_type, _val)                           \
     if ((u4)(_val) != TAINT_CLEAR) {                                    \
-        if (gDvm.statsTainted##_type == 0) {                            \
-            gDvm.statsTotal##_type = 0; /* reset total when taint starts */ \
-        }                                                               \
-        gDvm.statsTainted##_type++;                                     \
+        statsTainted##_type++;                                          \
     }                                                                   \
-    gDvm.statsTotal##_type++;                                           \
-    if (gDvm.statsTainted##_type &&                                     \
-        (gDvm.statsTotal##_type % TAINT_STATS_DUMP_THRESHOLD == 0)) {   \
-        printTaintStats();                                              \
+    statsTotal##_type++;                                                \
+    if (!implicitTaintMode && implicitTaintTag != TAINT_CLEAR) {        \
+        TLOGE("[IFLOW] ERROR implicitTaintMode = %s but implicitTaintTag = 0x%08x", BOOL(implicitTaintMode), implicitTaintTag); \
     }                                                                   \
-
-static inline void printTaintStats()
-{
-    LOG(LOG_VERBOSE, LOG_TAG"t", "STATS [Tainted/Total] Reg: %d/%d RegWide: %d/%d Arr: %d/%d RetArr: %d/%d\n",
-        gDvm.statsTaintedReg, gDvm.statsTotalReg,
-        gDvm.statsTaintedRegWide, gDvm.statsTotalRegWide,
-        gDvm.statsTaintedArr, gDvm.statsTotalArr,
-        gDvm.statsTaintedRetArr, gDvm.statsTotalRetArr);
-}
+    if (false && implicitTaintMode && (_val)) {                         \
+        TLOGV("[IFLOW] Taint ON");                                      \
+    }                                                                   \
 
 #endif /* WITH_IMPLICIT_TRACKING */
 
@@ -473,11 +464,11 @@ static inline void printTaintStats()
 # define GET_REGISTER_TAINT(_idx)	     (fp[((_idx)<<1)+1])
 #ifdef WITH_IMPLICIT_TRACKING
 # define SET_REGISTER_TAINT(_idx, _val)	     fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag); \
-                                             updateTaintStats(Reg, (u4)(_val | implicitTaintTag))
+                                             updateTaintStats(Reg, _val | implicitTaintTag)
 # define SET_REGISTER_TAINT_WIDE(_idx, _val) fp[((_idx)<<1)+1] = fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag); \
-                                             updateTaintStats(RegWide, (u4)(_val | implicitTaintTag))
+                                             updateTaintStats(RegWide, _val | implicitTaintTag)
 # define SET_RETURN_TAINT(_val)		           rtaint.tag = (u4)(_val | implicitTaintTag); \
-                                             updateTaintStats(RetArr, (u4)(_val | implicitTaintTag))
+                                             updateTaintStats(Ret, _val | implicitTaintTag)
 #else
 # define SET_REGISTER_TAINT(_idx, _val)	     (fp[((_idx)<<1)+1] = (u4)(_val))
 # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \
@@ -497,7 +488,6 @@ static inline void printTaintStats()
 # define SET_REGISTER_TAINT_AS_OBJECT(_idx, _val) SET_REGISTER_TAINT(_idx, _val)
 
 /* Object Taint interface */
-# define GET_ARRAY_TAINT(_arr)		      ((_arr)->taint.tag)
 // begin TAINT_ARRAY_ELEMENTS
 static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
     if (arr->taint) {
@@ -545,51 +535,35 @@ static inline u4 getArrayElementTaint(ArrayObject* arr, u4 idx) {
 // end TAINT_ARRAY_ELEMENTS
 
 #ifdef WITH_IMPLICIT_TRACKING
-# define IMPLICIT_BRANCH_TAINT(_val) if ((!implicitTaintMode) && ((u4)(_val) != TAINT_CLEAR)) { \
-    if (prevInst == OP_IF_MARKER) {                                     \
-      IMPLICIT_START_TAINTING(_val);                                    \
-    } else {                                                            \
-      TLOGE("[ERROR] IF-branch with Taint Tag = %04x and missing if-marker. Library not smalified?", (u4)(_val)); \
-    }                                                                   \
-  }
-      /* TLOGV("[STATE] IF-branch implicitTaintMode = %s implicitTaintTag = %04x implicitStartingFrame = %s implicitBranchPdom = %04x", \ */
-      /*       BOOL(implicitTaintMode),                                    \ */
-      /*       implicitTaintTag,                                           \ */
-      /*       BOOL(implicitStartingFrame),                                \ */
-      /*       implicitBranchPdom                                          \ */
-      /*       );                                                          \ */
+/* else {                                                            \ */
+/*         TLOGE("[ERROR] IF-branch with Taint Tag = %04x and missing if-marker. Library not smalified?", (u4)(_val)); \ */
+/*     }                                                                   \ */
+# define IMPLICIT_BRANCH_TAINT(_val)                            \
+    if ((!implicitTaintMode) && ((u4)(_val) != TAINT_CLEAR)) {  \
+        if (prevInst == OP_IF_MARKER) {                         \
+            IMPLICIT_START_TAINTING(_val);                      \
+        }                                                       \
+    }
 
 # define IMPLICIT_STOP_TAINTING(_reason)                                \
-  setImplicitTaintMode(&implicitTaintMode, false);                      \
-  implicitTaintTag      = TAINT_CLEAR;                                  \
-  implicitStartingFrame = false;                                        \
-  implicitBranchPdom    = 0;                                            \
-  prevInst              = OP_NOP;
+    implicitTaintMode     = false;                                      \
+    implicitTaintTag      = TAINT_CLEAR;                                \
+    implicitStartingFrame = false;                                      \
+    implicitBranchPdom    = 0;                                          \
+    prevInst              = OP_NOP;                                     
+    /* TLOGV("[IFLOW] Implicit Taint Mode = %s in %s", BOOL(implicitTaintMode), _reason); */
+
 # define IMPLICIT_START_TAINTING(_val)                                  \
     if (gDvm.taintTarget) {                                             \
-        setImplicitTaintMode(&implicitTaintMode, true);                 \
-        implicitTaintTag = (u4)(_val);                                  \
+        implicitTaintMode     = true;                                   \
+        implicitTaintTag      = (u4)(_val);                             \
         implicitStartingFrame = true;                                   \
     }
+        /* TLOGV("[IFLOW] Implicit Taint Mode = %s", BOOL(implicitTaintMode)); */ \
 #else
 # define IMPLICIT_BRANCH_TAINT(_val) ((void)0)
 # define IMPLICIT_STOP_TAINTING(_reason) ((void)0)
 #endif /* WITH_IMPLICIT_TRACKING */
-
-/* # define GET_REGISTER_TAINT(_idx)      (getRegisterTaint(fp, ((_idx)<<1)+1)) */
-/* # define GET_REGISTER_TAINT(_idx)      (fp[((_idx)<<1)+1]);             \ */
-/*                                         TLOGV("+++ GET_REGISTER v%-2d : fp[(idx<<1)+1] : 0x%08x\n", (_idx), fp[(_idx)<<1]); ) */
-/* # define SET_REGISTER_TAINT(_idx, _val)	     fp[((_idx)<<1)+1] = (u4)(_val); \ */
-/*                                               TLOGV("[IFLOW-DEBUG] implicitTaintMode = %s", BOOL(implicitTaintMode)); */
-/* # define SET_REGISTER_TAINT(_idx, _val)      (fp[((_idx)<<1)+1] = (u4)(_val | implicitTaintTag)); \ */
-/*     TLOGV(" +++ SET_REGISTER_TAINT v%-2d : fp[(%d<<1)+1] = 0x%04x implicit = 0x%04x", (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag); */
-/* # define SET_REGISTER_TAINT_WIDE(_idx, _val) (fp[((_idx)<<1)+1] = \ */
-/*                                               fp[((_idx)<<1)+3] = (u4)(_val | implicitTaintTag)); \ */
-/*     TLOGV(" +++ SET_REGISTER_TAINT_WIDE v%-2d : fp[(%d<<1)+1] = fp[(%d<<1)+3] = 0x%04x implcit = 0x%04x", (_idx), (_idx), (_idx), (u4)(_val | implicitTaintTag), implicitTaintTag); */
-/* # define SET_ARRAY_TAINT(_arr, _val)        ((_arr)->taint.tag = (u4)(_val | implicitTaintTag)); \ */
-/*     TLOGV(" +++ SET_ARRAY_TAINT val : 0x%04x implicit : 0x%04x", (u4)(_val | implicitTaintTag), implicitTaintTag); */
-/* # define SET_RETURN_TAINT(_val)         (rtaint.tag = (u4)(_val));  \ */
-/*     TLOGV(" +++ SET_RETURN_TAINT val : 0x%04x", (u4)(_val)); */
 
 /*
  * Get 16 bits from the specified offset of the program counter.  We always

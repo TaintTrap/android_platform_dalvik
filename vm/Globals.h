@@ -676,15 +676,21 @@ struct DvmGlobals {
 
 #ifdef WITH_TAINT_TRACKING
     bool taintTarget;
+    /* Stats lock */
+    pthread_mutex_t statsLock;
     /* Stats counters */
+    int  statsTotal;
+    int  statsTainted;
+    int  statsPrevTainted;      /* for interval tracking */
+    /* Detailed counters */
     int  statsTotalReg;
     int  statsTaintedReg;
     int  statsTotalRegWide;
     int  statsTaintedRegWide;
     int  statsTotalArr;
     int  statsTaintedArr;
-    int  statsTotalRetArr;
-    int  statsTaintedRetArr;
+    int  statsTotalRet;
+    int  statsTaintedRet;
 #endif /* WITH_TAINT_TRACKING */
 };
 

@@ -106,3 +106,16 @@
             GOTO_bail_switch();                                             \
         }                                                                   \
     }
+
+#ifdef WITH_TAINT_TRACKING
+/* #define rtaint		              interpState->rtaint */
+/* #define implicitStartingFrame   interpState->implicitStartingFrame */
+/* #define implicitBranchPdom      interpState->implicitBranchPdom */
+/* #define implicitTaintMode		    self->implicitTaintMode */
+/* #define implicitTaintTag		    self->implicitTaintTag */
+#define implicitTaintMode		    interpState->implicitTaintMode
+#define implicitTaintTag		    interpState->implicitTaintTag
+/* #define prevInst        		    interpState->prevInst */
+#define statsTainted            self->statsTainted
+#define statsTotal              self->statsTotal
+#endif

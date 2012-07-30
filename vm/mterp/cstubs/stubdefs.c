@@ -36,16 +36,13 @@
 #define debugTrackedRefStart    glue->debugTrackedRefStart
 
 #ifdef WITH_TAINT_TRACKING
-#define rtaint			glue->rtaint
-/* #define implicitTaintMode		glue->implicitTaintMode */
-/* #define implicitTaintTag		glue->implicitTaintTag */
-/* #define implicitStartingFrame   false       /\* FIXME *\/ */
-/* #define implicitBranchPdom      0x0000      /\* FIXME *\/ */
+#define rtaint			            glue->rtaint
 #define implicitStartingFrame   glue->implicitStartingFrame
 #define implicitBranchPdom      glue->implicitBranchPdom
-#define implicitTaintMode		    false       /* FIXME */
-#define implicitTaintTag		    TAINT_CLEAR /* FIXME */
-#define prevInst        		    glue->prevInst /* FIXME */
+#define implicitTaintMode		    glue->implicitTaintMode
+#define implicitTaintTag		    glue->implicitTaintTag
+#define prevInst        		    glue->prevInst
+#define updateTaintStats(x, y)  ((void)0)
 #endif
 
 /* ugh */

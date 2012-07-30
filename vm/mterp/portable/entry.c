@@ -116,14 +116,12 @@ systemTid=%d sysid=%d threadid=%d: entry(%s) %s.%s pc=0x%x fp=%p ep=%d\n",
 
 #ifdef WITH_IMPLICIT_TRACKING
     /* Global per interpreter (across interp calls) */
-    bool implicitTaintMode;
-    u4   implicitTaintTag;
     /* These are initialized here but moved to/from StackSaveArea later on invoke/returns */
-    bool implicitStartingFrame;/* if we started tainting in the current method */
-    u4   implicitBranchPdom; // ipd of last if-marker (used in subsequeny IF handler)
-    u2   prevInst; // opcode of prev instruction, used for IF to see if it had a if-marker
+    bool implicitStartingFrame = false;/* if we started tainting in the current method */
+    u4   implicitBranchPdom = 0; // ipd of last if-marker (used in subsequeny IF handler)
+    u2   prevInst = OP_NOP; // opcode of prev instruction, used for IF to see if it had a if-marker
     /* Actually initialize the values above */
-    IMPLICIT_STOP_TAINTING("dvmInterpStd");
+    /* IMPLICIT_STOP_TAINTING("dvmInterpStd"); */
 #endif /* WITH_IMPLICIT_TRACKING */
 
     switch (interpState->entryPoint) {

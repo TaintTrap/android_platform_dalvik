@@ -1325,6 +1325,22 @@ void dvmInterpret(Thread* self, const Method* method, JValue* pResult)
      */
 #ifdef WITH_TAINT_TRACKING
     interpState.rtaint.tag = TAINT_CLEAR;
+    /* Stats counters */
+    self->statsTainted     = 0;
+    self->statsTotal       = 0;
+#endif
+
+#ifdef WITH_IMPLICIT_TRACKING
+    interpState.implicitStartingFrame = false;
+    interpState.implicitBranchPdom    = 0;
+    interpState.prevInst              = OP_NOP;
+    interpState.implicitTaintMode     = false;
+    interpState.implicitTaintTag      = TAINT_CLEAR;
+    /* Using Thread instead of InterpState */
+    /* self->implicitBranchPdom = 0; */
+    /* self->prevInst = OP_NOP; */
+    /* self->implicitTaintMode = false; */
+    /* self->implicitTaintTag = TAINT_CLEAR; */
 #endif
 
     interpState.method = method;

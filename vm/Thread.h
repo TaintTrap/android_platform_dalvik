@@ -245,6 +245,20 @@ typedef struct Thread {
     /* PC, saved on every instruction; redundant with StackSaveArea */
     const u2*   currentPc2;
 #endif
+
+/* #if defined(WITH_IMPLICIT_TRACKING) */
+/*     bool implicitStartingFrame; /\* UNUSED *\/ */
+/*     u4   implicitBranchPdom;    /\* UNUSED *\/ */
+/*     u2   prevInst;              /\* TODO: use this instead of a local prevInst in dvmInterpStd *\/ */
+/*     bool implicitTaintMode;     /\* Global per thread *\/ */
+/*     u4   implicitTaintTag;      /\* Global per thread *\/ */
+/* #endif */
+
+#ifdef WITH_TAINT_TRACKING
+    /* Stats counters */
+    int  statsTotal;
+    int  statsTainted;
+#endif
 } Thread;
 
 /* start point for an internal thread; mimics pthread args */
