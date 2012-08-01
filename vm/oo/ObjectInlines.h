@@ -434,6 +434,8 @@ INLINE u4 dvmGetStaticFieldTaintVolatile(const StaticField* sfield) {
 #define dvmGetStaticFieldTaintFloatVolatile(_sfield)   ((void)0)
 #define dvmGetStaticFieldTaintDoubleVolatile(_sfield)  ((void)0)
 #define dvmGetStaticFieldTaintObjectVolatile(_sfield)  ((void)0)
+
+#define dvmAddFieldStats(_field, _method, _tag)        ((void)0)
 #endif
 
 INLINE void dvmSetStaticFieldBoolean(StaticField* sfield, bool val) {

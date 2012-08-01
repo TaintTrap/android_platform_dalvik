@@ -1148,59 +1148,6 @@ static void blockSignals()
 }
 
 /*
-#ifdef WITH_TAINT_TRACKING
-bool dvmLoadTaintTargets()
-{
-    char pathBuf[32];
-    char lineBuf[256];
-    char package[128];
-    FILE *fp;
-
-    snprintf(pathBuf, sizeof(pathBuf), "/data/app/%s", "taint-targets");
-    if ((fp = fopen(pathBuf, "rt")) == NULL) {
-        LOGE("TaintLog: Unable to open Taint Targets from %s. Missing file?\n", pathBuf);
-    }
-    gDvm.taintTargetsCount = 0;
-    while (fgets(lineBuf, sizeof(lineBuf) -1, fp) != NULL) {
-        sscanf(lineBuf, "%s\n", package);
-        LOGI("TaintLog: Target Taint Package: %s\n", package);
-        gDvm.taintTargets[gDvm.taintTargetsCount] = malloc(strlen(package) * sizeof(char));
-        strcpy(gDvm.taintTargets[gDvm.taintTargetsCount], package);
-        gDvm.taintTargetsCount++;
-
-    }
-    fclose(fp);
-    return true;
-}
-#endif
-*/
-
-#ifdef WITH_TAINT_TRACKING
-bool dvmInitTaintStats()
-{
-    gDvm.taintTarget         = false;
-    /* Stats lock */
-    dvmInitMutex(&gDvm.statsLock);
-    /* Stats counters */
-    gDvm.statsTotal          = 0;
-    gDvm.statsTainted        = 0;
-    gDvm.statsPrevTainted    = 0;
-    gDvm.statsPrevTainted    = 0;
-    /* Detailed counters */
-    gDvm.statsTotalReg       = 0;
-    gDvm.statsTaintedReg     = 0;
-    gDvm.statsTotalRegWide   = 0;
-    gDvm.statsTaintedRegWide = 0;
-    gDvm.statsTotalArr       = 0;
-    gDvm.statsTaintedArr     = 0;
-    gDvm.statsTotalRet       = 0;
-    gDvm.statsTaintedRet     = 0;
-
-    return true;
-}
-#endif
-
-/*
  * VM initialization.  Pass in any options provided on the command line.
  * Do not pass in the class name or the options for the class.
  *
@@ -1302,7 +1249,7 @@ int dvmStartup(int argc, const char* const argv[], bool ignoreUnrecognized,
     if (!dvmProfilingStartup())
         goto fail;
 #ifdef WITH_TAINT_TRACKING
-    if (!dvmInitTaintStats())
+    if (!dvmTaintInitStats())
         goto fail;
 #endif /* WITH_TAINT_TRACKING */
 

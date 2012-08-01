@@ -344,6 +344,7 @@ static inline void setImplicitTaintMode(bool *taintMode, bool mode) {
 /* #define updateTaintStats(_type, _val) updateTaintStatsDetailed(_type, _val) // Detailed stats */
 #define updateTaintStatsDetailed(_type, _val)                           \
     if ((u4)(_val) != TAINT_CLEAR) {                                    \
+        gDvm.taintStarted = true;                                       \
         statsTainted##_type++;                                          \
     }                                                                   \
     statsTotal##_type++;                                                \

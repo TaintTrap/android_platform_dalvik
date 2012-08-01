@@ -625,8 +625,11 @@ GOTO_TARGET_DECL(exceptionThrown);
         }                                                                   \
         SET_REGISTER##_regsize(vdst,                                        \
             dvmGetField##_ftype(obj, ifield->byteOffset));                  \
-        ILOGV("+ IGET '%s'=0x%08llx", ifield->field.name,                   \
-            (u8) GET_REGISTER##_regsize(vdst));                             \
+        ILOGV("+ IGET name=%s sig=%s class=%s val=0x%08llx",                \
+              ifield->field.name,                                       \
+              ifield->field.clazz->descriptor,                          \
+              ifield->field.signature,                                  \
+              (u8)GET_REGISTER##_regsize(vdst));                        \
         UPDATE_FIELD_GET(&ifield->field);                                   \
 /* ifdef WITH_TAINT_TRACKING */                                             \
 	SET_REGISTER_TAINT##_regsize(vdst,                                  \
@@ -682,12 +685,16 @@ GOTO_TARGET_DECL(exceptionThrown);
         }                                                                   \
         dvmSetField##_ftype(obj, ifield->byteOffset,                        \
             GET_REGISTER##_regsize(vdst));                                  \
-        ILOGV("+ IPUT '%s'=0x%08llx", ifield->field.name,                   \
-            (u8) GET_REGISTER##_regsize(vdst));                             \
+        ILOGV("+ IPUT name=%s class=%s sig=%s val=0x%08llx",                \
+              ifield->field.name,                                       \
+              ifield->field.clazz->descriptor,                          \
+              ifield->field.signature,                                  \
+              (u8)GET_REGISTER##_regsize(vdst));                        \
         UPDATE_FIELD_PUT(&ifield->field);                                   \
 /* ifdef WITH_TAINT_TRACKING */                                             \
 	dvmSetFieldTaint##_ftype(obj, ifield->byteOffset,                   \
 		GET_REGISTER_TAINT##_regsize(vdst));                        \
+  dvmAddFieldStats(&ifield->field, curMethod, dvmGetFieldTaint##_ftype(obj, ifield->byteOffset)); \
 /* endif */                                                                 \
     }                                                                       \
     FINISH(2);
@@ -705,7 +712,7 @@ GOTO_TARGET_DECL(exceptionThrown);
         if (!checkForNullExportPC(obj, fp, pc))                             \
             GOTO_exceptionThrown();                                         \
         dvmSetField##_ftype(obj, ref, GET_REGISTER##_regsize(vdst));        \
-        ILOGV("+ IPUTQ %d=0x%08llx", ref,                                   \
+        ILOGV("+ IPUTQ %d=0x%08llx", ref,                           \
             (u8) GET_REGISTER##_regsize(vdst));                             \
 /* ifdef WITH_TAINT_TRACKING */                                             \
 	/*TLOGW("|IPUTQ not supported by taint tracking!!!");*/             \
@@ -739,8 +746,11 @@ GOTO_TARGET_DECL(exceptionThrown);
             }                                                               \
         }                                                                   \
         SET_REGISTER##_regsize(vdst, dvmGetStaticField##_ftype(sfield));    \
-        ILOGV("+ SGET '%s'=0x%08llx",                                       \
-            sfield->field.name, (u8)GET_REGISTER##_regsize(vdst));          \
+        ILOGV("+ SGET name=%s class=%s sig=%s val=0x%08llx",                \
+              sfield->field.name,                                       \
+              sfield->field.clazz->descriptor,                          \
+              sfield->field.signature,                                  \
+              (u8)GET_REGISTER##_regsize(vdst));                        \
         UPDATE_FIELD_GET(&sfield->field);                                   \
 /* ifdef WITH_TAINT_TRACKING */                                             \
 	SET_REGISTER_TAINT##_regsize(vdst, dvmGetStaticFieldTaint##_ftype(sfield));\
@@ -766,8 +776,11 @@ GOTO_TARGET_DECL(exceptionThrown);
             }                                                               \
         }                                                                   \
         dvmSetStaticField##_ftype(sfield, GET_REGISTER##_regsize(vdst));    \
-        ILOGV("+ SPUT '%s'=0x%08llx",                                       \
-            sfield->field.name, (u8)GET_REGISTER##_regsize(vdst));          \
+        ILOGV("+ SPUT name=%s class=%s sig=%s val=0x%08llx",    \
+              sfield->field.name,                                       \
+              sfield->field.clazz->descriptor,                          \
+              sfield->field.signature,                                  \
+              (u8)GET_REGISTER##_regsize(vdst));                        \
         UPDATE_FIELD_PUT(&sfield->field);                                   \
 /* ifdef WITH_TAINT_TRACKING */                                             \
 	dvmSetStaticFieldTaint##_ftype(sfield,                              \

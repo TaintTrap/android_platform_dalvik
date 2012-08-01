@@ -277,6 +277,8 @@ static void handleSigTaintStats(void)
         gDvm.statsTotal = 0;
     } else {
         printTaintStats();
+        /* dvmDumpAllFieldStats(kDumpFieldFullDetail); */
+        /* dvmDumpAllFieldStats(0); */
     }
 
     dvmResumeAllThreads(SUSPEND_FOR_DEBUG_EVENT);
