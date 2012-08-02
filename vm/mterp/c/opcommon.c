@@ -785,6 +785,7 @@ GOTO_TARGET_DECL(exceptionThrown);
 /* ifdef WITH_TAINT_TRACKING */                                             \
 	dvmSetStaticFieldTaint##_ftype(sfield,                              \
 		GET_REGISTER_TAINT##_regsize(vdst));                        \
+  dvmAddFieldStats(&sfield->field, curMethod, dvmGetStaticFieldTaint##_ftype(sfield)); \
 /* endif */                                                                 \
     }                                                                       \
     FINISH(2);

@@ -15,4 +15,7 @@ void dvmAddFieldStats(const Field* field, const Method* method, u4 tag);
 /* Dumps all stats to logcat */
 void dvmDumpAllFieldStats(int flags);
 
+/* Shutdown called from dvmShutdown() */
+void dvmTaintStatsShutdown();
+
 #endif

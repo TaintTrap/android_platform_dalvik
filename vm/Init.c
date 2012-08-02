@@ -1683,6 +1683,10 @@ void dvmShutdown(void)
     dvmAllocTrackerShutdown();
     dvmPropertiesShutdown();
 
+#ifdef WITH_TAINT_TRACKING
+    dvmTaintStatsShutdown();
+#endif
+
     /* these must happen AFTER dvmClassShutdown has walked through class data */
     dvmNativeShutdown();
     dvmInternalNativeShutdown();
