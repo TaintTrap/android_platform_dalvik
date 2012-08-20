@@ -42,6 +42,9 @@ endif
 ifeq ($(WITH_TAINT_FAST),true)
   LOCAL_CFLAGS += -DWITH_TAINT_FAST
 endif
+ifeq ($(TAINT_HEAP_LOG),true)
+  LOCAL_CFLAGS += -DTAINT_HEAP_LOG
+endif
 
 #
 # Optional features.  These may impact the size or performance of the VM.
