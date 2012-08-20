@@ -44,6 +44,75 @@
 #define ALIGN_UP(x, n) (((size_t)(x) + (n) - 1) & ~((n) - 1))
 #define ALIGN_UP_TO_PAGE_SIZE(p) ALIGN_UP(p, SYSTEM_PAGE_SIZE)
 
+static size_t objectSize(const Object *obj)
+{
+    assert(dvmIsValidObject(obj));
+    assert(dvmIsValidObject((Object *)obj->clazz));
+    if (IS_CLASS_FLAG_SET(obj->clazz, CLASS_ISARRAY)) {
+        return dvmArrayObjectSize((ArrayObject *)obj);
+    } else if (obj->clazz == gDvm.classJavaLangClass) {
+        return dvmClassObjectSize((ClassObject *)obj);
+    } else {
+        return obj->clazz->objectSize;
+    }
+}
+
+#ifdef TAINT_HEAP_LOG
+static int taintedBytes = 0;
+
+static void clearTaintStats() {
+    taintedBytes = 0;
+}
+
+static void dumpTaintStats() {
+    LOGE_GC("Heap taint: %d tainted bytes", taintedBytes);
+}
+
+static void logTaintedRegion(int addr, int size, char* type) {
+    LOGE_GC("Heap taint: addr: 0x%08x, size: %d, type: %s", (unsigned int)addr, size, type);
+    taintedBytes+=size;
+}
+
+static void checkTaintField(const Object* obj, Field* field) {
+    if (field != NULL) {
+        //LOGE("Checking field %s.%s", field->clazz->descriptor, field->name);
+
+        InstField* ifield;
+        StaticField* sfield;
+        bool isStatic = false;
+
+        if (dvmIsStaticField(field)) {
+            sfield = (StaticField*) field;
+            isStatic = true;
+        } else {
+	    ifield = (InstField*) field;
+        }
+
+        u4 tag = TAINT_CLEAR;
+        if (isStatic) {
+            tag = dvmGetStaticFieldTaint(sfield);
+        }
+        else {
+            if (field->signature[0] == 'J' || field->signature[0] == 'D') {  
+                tag = dvmGetFieldTaintWide(obj, ifield->byteOffset);
+            }
+            else {
+                tag = dvmGetFieldTaint(obj, ifield->byteOffset);
+            }
+        }
+
+        if (tag != TAINT_CLEAR) {
+            if (isStatic) {
+                logTaintedRegion((int)field, sizeof(StaticField), "StaticField");
+            }
+            else {
+                logTaintedRegion((int)field, sizeof(InstField), "InstField");             
+            }                 
+        }
+    }
+}
+#endif /*TAINT_HEAP_LOG*/
+
 /* Do not cast the result of this to a boolean; the only set bit
  * may be > 1<<8.
  */
@@ -92,6 +161,10 @@ static void destroyMarkStack(GcMarkStack *stack)
 
 bool dvmHeapBeginMarkStep(GcMode mode)
 {
+#ifdef TAINT_HEAP_LOG
+    clearTaintStats();
+#endif /*TAINT_HEAP_LOG*/
+
     GcMarkContext *ctx = &gDvm.gcHeap->markContext;
 
     if (!createMarkStack(&ctx->stack)) {
@@ -304,6 +377,15 @@ static void scanInstanceFields(const Object *obj, GcMarkContext *ctx)
             markObject(dvmGetFieldObject((Object*)obj,
                                           CLASS_OFFSET_FROM_CLZ(rshift)), ctx);
         }
+
+#ifdef TAINT_HEAP_LOG
+        // PJG: check for tainted instance fields
+        int i;
+        InstField *field = obj->clazz->ifields;
+        for (i = 0; i < obj->clazz->ifieldCount; ++i, ++field) {
+            checkTaintField(obj, (Field*)field);
+        }
+#endif /*TAINT_HEAP_LOG*/
     } else {
         ClassObject *clazz;
         int i;
@@ -314,6 +396,13 @@ static void scanInstanceFields(const Object *obj, GcMarkContext *ctx)
 
                 markObject(((JValue *)addr)->l, ctx);
             }
+#ifdef TAINT_HEAP_LOG
+            // PJG: check for tainted instance fields
+            field = clazz->ifields;
+            for (i = 0; i < clazz->ifieldCount; ++i, ++field) {
+                checkTaintField(obj, (Field*)field);
+            }
+#endif /*TAINT_HEAP_LOG*/
         }
     }
 }
@@ -345,6 +434,10 @@ static void scanClassObject(const ClassObject *obj, GcMarkContext *ctx)
         if (ch == '[' || ch == 'L') {
             markObject(obj->sfields[i].value.l, ctx);
         }
+#ifdef TAINT_HEAP_LOG
+        // PJG: check for tainted static fields
+        checkTaintField((Object *)obj, (Field*)(&obj->sfields[i].field));
+#endif /*TAINT_HEAP_LOG*/
     }
     /* Scan the instance fields. */
     scanInstanceFields((const Object *)obj, ctx);
@@ -376,10 +469,22 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
             markObject(contents[i], ctx);
         }
     }
+
+#ifdef TAINT_HEAP_LOG
+    // PJG: check for tainted ArrayObjects
+    if (obj->taint) {
+        logTaintedRegion((int)obj, objectSize((Object *)obj), "ArrayObject");
+    }
+#endif /*TAINT_HEAP_LOG*/
+
 // begin TAINT_ARRAY_ELEMENTS
     // PJG: if we have a taint tag array, mark it
     if (obj->taint) {
         ArrayObject* tagArray = (ArrayObject*)(obj->taint);
+#ifdef TAINT_HEAP_LOG
+        // PJG: log taint array as well?
+        logTaintedRegion((int)tagArray, objectSize((Object *)tagArray), "ArrayObject");
+#endif /*TAINT_HEAP_LOG*/
         markObject((Object *)tagArray, ctx);
     }
 // end TAINT_ARRAY_ELEMENTS
@@ -551,19 +656,6 @@ processMarkStack(GcMarkContext *ctx)
     ctx->finger = (void *)ULONG_MAX;
     while (ctx->stack.top != base) {
         scanObject(*ctx->stack.top++, ctx);
-    }
-}
-
-static size_t objectSize(const Object *obj)
-{
-    assert(dvmIsValidObject(obj));
-    assert(dvmIsValidObject((Object *)obj->clazz));
-    if (IS_CLASS_FLAG_SET(obj->clazz, CLASS_ISARRAY)) {
-        return dvmArrayObjectSize((ArrayObject *)obj);
-    } else if (obj->clazz == gDvm.classJavaLangClass) {
-        return dvmClassObjectSize((ClassObject *)obj);
-    } else {
-        return obj->clazz->objectSize;
     }
 }
 
@@ -904,6 +996,9 @@ void dvmHeapScheduleFinalizations()
 
 void dvmHeapFinishMarkStep()
 {
+#ifdef TAINT_HEAP_LOG
+    dumpTaintStats();
+#endif /*TAINT_HEAP_LOG*/
     GcMarkContext *ctx;
 
     ctx = &gDvm.gcHeap->markContext;
