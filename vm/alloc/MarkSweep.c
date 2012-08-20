@@ -68,8 +68,8 @@ static void dumpTaintStats() {
     LOGE_GC("Heap taint: %d tainted bytes", taintedBytes);
 }
 
-static void logTaintedRegion(int addr, int size, char* type) {
-    LOGE_GC("Heap taint: addr: 0x%08x, size: %d, type: %s", (unsigned int)addr, size, type);
+static void logTaintedRegion(int addr, int size, char* kind, const char* type) {
+    LOGE_GC("Heap taint: addr: 0x%08x, size: %d, %s(%s)", (unsigned int)addr, size, kind, type);
     taintedBytes+=size;
 }
 
@@ -103,10 +103,10 @@ static void checkTaintField(const Object* obj, Field* field) {
 
         if (tag != TAINT_CLEAR) {
             if (isStatic) {
-                logTaintedRegion((int)field, sizeof(StaticField), "StaticField");
+                logTaintedRegion((int)field, sizeof(StaticField), "StaticField", field->signature);
             }
             else {
-                logTaintedRegion((int)field, sizeof(InstField), "InstField");             
+                logTaintedRegion((int)field, sizeof(InstField), "InstField", field->signature);             
             }                 
         }
     }
@@ -473,7 +473,7 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
 #ifdef TAINT_HEAP_LOG
     // PJG: check for tainted ArrayObjects
     if (obj->taint) {
-        logTaintedRegion((int)obj, objectSize((Object *)obj), "ArrayObject");
+        logTaintedRegion((int)obj, objectSize((Object *)obj), "ArrayObject", ((Object*)obj)->clazz->descriptor);
     }
 #endif /*TAINT_HEAP_LOG*/
 
@@ -483,7 +483,7 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
         ArrayObject* tagArray = (ArrayObject*)(obj->taint);
 #ifdef TAINT_HEAP_LOG
         // PJG: log taint array as well?
-        logTaintedRegion((int)tagArray, objectSize((Object *)tagArray), "ArrayObject");
+        logTaintedRegion((int)tagArray, objectSize((Object *)tagArray), "ArrayObject", ((Object*)obj)->clazz->descriptor);
 #endif /*TAINT_HEAP_LOG*/
         markObject((Object *)tagArray, ctx);
     }
