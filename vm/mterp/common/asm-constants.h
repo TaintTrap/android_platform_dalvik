@@ -178,7 +178,11 @@ MTERP_OFFSET(offStackSaveArea_currentPc, StackSaveArea, xtra.currentPc, 16)
 MTERP_OFFSET(offStackSaveArea_localRefCookie, \
                                         StackSaveArea, xtra.localRefCookie, 16)
 MTERP_OFFSET(offStackSaveArea_returnAddr, StackSaveArea, returnAddr, 20)
-MTERP_SIZEOF(sizeofStackSaveArea,       StackSaveArea, 24)
+#ifdef WITH_IMPLICIT_TRACKING
+MTERP_SIZEOF(sizeofStackSaveArea,       StackSaveArea, 32)
+#else
+MTERP_SIZEOF(sizeofStackSaveArea,       StackSaveArea, 28
+#endif  /* WITH_IMPLICIT_TRACKING */
 #endif
 
 #else

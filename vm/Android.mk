@@ -58,8 +58,8 @@ LOCAL_MODULE := libdvm
 # Enable assert: -UNDEBUG -DWITH_DALVIK_ASSERT (see dalvik/vm/Common.h)
 # LOCAL_CFLAGS += $(target_smp_flag) -O0 -gdwarf-2 -g3 -DEASY_GDB -DLOG_INSTR -UNDEBUG -DWITH_DALVIK_ASSERT
 # LOCAL_CFLAGS += $(target_smp_flag) -O0 -gdwarf-2 -g3 -DEASY_GDB -DLOG_INSTR -UNDEBUG # broken due to NDEBUG?
-LOCAL_CFLAGS += $(target_smp_flag) -O0 -gdwarf-2 -g3 -DEASY_GDB -DLOG_INSTR # this works
-# LOCAL_CFLAGS += $(target_smp_flag)
+# LOCAL_CFLAGS += $(target_smp_flag) -O0 -gdwarf-2 -g3 -DEASY_GDB -DLOG_INSTR # this works
+LOCAL_CFLAGS += $(target_smp_flag)
 
 include $(BUILD_SHARED_LIBRARY)
 
