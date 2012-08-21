@@ -66,11 +66,13 @@ static size_t objectSize(const Object *obj)
 #define NUM_TAINTED_REGION_TYPES 4
 
 static int taintBytes[NUM_TAINTED_REGION_TYPES];
+static int taintRanges = 0;
 
 static void clearTaintStats() {
     int i;
     for (i=0; i<NUM_TAINTED_REGION_TYPES; i++)
         taintBytes[i]=0;
+    taintRanges = 0;
 }
 
 static void dumpTaintStats() {
@@ -79,11 +81,12 @@ static void dumpTaintStats() {
     int i;
     for (i=0; i<NUM_TAINTED_REGION_TYPES; i++)
         totalBytes+=taintBytes[i];
-    LOGE_GC("Heap taint: %d total bytes", totalBytes);
+    LOGE_GC("Heap taint: %d total bytes in %d tainted ranges", totalBytes, taintRanges);
 }
 
 static void logTaintedRegion(int addr, int size, int regionType, const char* type) {
     taintBytes[regionType]+=size;
+    taintRanges++;
 
     char* name;
     switch(regionType) {
