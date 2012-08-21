@@ -77,37 +77,21 @@ static void checkTaintField(const Object* obj, Field* field) {
     if (field != NULL) {
         //LOGE("Checking field %s.%s", field->clazz->descriptor, field->name);
 
-        InstField* ifield;
-        StaticField* sfield;
-        bool isStatic = false;
-
-        if (dvmIsStaticField(field)) {
-            sfield = (StaticField*) field;
-            isStatic = true;
-        } else {
-	    ifield = (InstField*) field;
-        }
-
         u4 tag = TAINT_CLEAR;
-        if (isStatic) {
+        if (dvmIsStaticField(field)) {
+            StaticField* sfield = (StaticField*) field;
             tag = dvmGetStaticFieldTaint(sfield);
-        }
-        else {
-            if (field->signature[0] == 'J' || field->signature[0] == 'D') {  
-                tag = dvmGetFieldTaintWide(obj, ifield->byteOffset);
-            }
-            else {
-                tag = dvmGetFieldTaint(obj, ifield->byteOffset);
-            }
-        }
-
-        if (tag != TAINT_CLEAR) {
-            if (isStatic) {
+            if (tag != TAINT_CLEAR)
                 logTaintedRegion((int)field, sizeof(StaticField), "StaticField", field->signature);
-            }
-            else {
-                logTaintedRegion((int)field, sizeof(InstField), "InstField", field->signature);             
-            }                 
+        } else {
+	    InstField* ifield = (InstField*) field;
+            if (field->signature[0] == 'J' || field->signature[0] == 'D')  
+                tag = dvmGetFieldTaintWide(obj, ifield->byteOffset);
+            else
+                tag = dvmGetFieldTaint(obj, ifield->byteOffset);
+            
+            if (tag != TAINT_CLEAR)
+                logTaintedRegion((int)field, sizeof(InstField), "InstField", field->signature);  
         }
     }
 }
@@ -483,7 +467,7 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
         ArrayObject* tagArray = (ArrayObject*)(obj->taint);
 #ifdef TAINT_HEAP_LOG
         // PJG: log taint array as well?
-        logTaintedRegion((int)tagArray, objectSize((Object *)tagArray), "ArrayObject", ((Object*)obj)->clazz->descriptor);
+        logTaintedRegion((int)tagArray, objectSize((Object *)tagArray), "ArrayObject", "taint tag array");
 #endif /*TAINT_HEAP_LOG*/
         markObject((Object *)tagArray, ctx);
     }
