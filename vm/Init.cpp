@@ -1215,6 +1215,15 @@ private:
     bool armed_;
 };
 
+#ifdef WITH_TAINT_TRACKING
+bool dvmInitTaintStats()
+{
+    gDvm.taintTarget = false;
+
+    return true;
+}
+#endif
+
 /*
  * VM initialization.  Pass in any options provided on the command line.
  * Do not pass in the class name or the options for the class.
@@ -1326,6 +1335,11 @@ std::string dvmStartup(int argc, const char* const argv[],
     if (!dvmProfilingStartup()) {
         return "dvmProfilingStartup failed";
     }
+#ifdef WITH_TAINT_TRACKING
+    if (!dvmInitTaintStats()) {
+        return "dvmInitTaintStats failed";
+    }
+#endif /* WITH_TAINT_TRACKING */
 
     /*
      * Create a table of methods for which we will substitute an "inline"

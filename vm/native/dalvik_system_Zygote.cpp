@@ -549,7 +549,7 @@ static void Dalvik_dalvik_system_Zygote_execShell(
 const DalvikNativeMethod dvm_dalvik_system_Zygote[] = {
     { "nativeFork", "()I",
       Dalvik_dalvik_system_Zygote_fork },
-    { "nativeForkAndSpecialize", "(II[II[[I)I",
+    { "nativeForkAndSpecialize", "(II[II[[IZ)I",
       Dalvik_dalvik_system_Zygote_forkAndSpecialize },
     { "nativeForkSystemServer", "(II[II[[IJJ)I",
       Dalvik_dalvik_system_Zygote_forkSystemServer },
