@@ -59,18 +59,21 @@ static size_t objectSize(const Object *obj)
 
 #ifdef TAINT_HEAP_LOG
 static int taintedBytes = 0;
+static int taintedRanges = 0;
 
 static void clearTaintStats() {
     taintedBytes = 0;
+    taintedRanges = 0;
 }
 
 static void dumpTaintStats() {
-    LOGE_GC("Heap taint: %d tainted bytes", taintedBytes);
+    LOGE_GC("Heap taint: %d tainted bytes in %d tainted ranges", taintedBytes, taintedRanges);
 }
 
 static void logTaintedRegion(int addr, int size, char* kind, const char* type) {
     LOGE_GC("Heap taint: addr: 0x%08x, size: %d, %s(%s)", (unsigned int)addr, size, kind, type);
     taintedBytes+=size;
+    taintedRanges++;
 }
 
 static void checkTaintField(const Object* obj, Field* field) {
