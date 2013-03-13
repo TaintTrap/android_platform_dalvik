@@ -66,48 +66,52 @@ static size_t objectSize(const Object *obj)
 #define TAINTED_REGION_IFIELD_DATA	4
 #define NUM_TAINTED_REGION_TYPES	5
 
+static const char *regionNames[NUM_TAINTED_REGION_TYPES] = {
+    "ArrayObject",
+    "ArrayObject-taint",
+    "StaticField",
+    "InstField",
+    "InstField-data"
+};
+
 static int taintBytes[NUM_TAINTED_REGION_TYPES];
-static int taintRanges = 0;
+static int taintRanges[NUM_TAINTED_REGION_TYPES];
 
 static void clearTaintStats() {
     int i;
-    for (i=0; i<NUM_TAINTED_REGION_TYPES; i++)
+    for (i=0; i<NUM_TAINTED_REGION_TYPES; i++) {
         taintBytes[i]=0;
-    taintRanges = 0;
+        taintRanges[i]=0;
+    }
 }
 
 static void dumpTaintStats() {
     int totalBytes = 0;
+    int totalRanges = 0;
 
     int i;
-    for (i=0; i<NUM_TAINTED_REGION_TYPES; i++)
+    for (i=0; i<NUM_TAINTED_REGION_TYPES; i++) {
+        if (taintBytes[i])
+            LOGE_GC("Heap taint: type: %-20s bytes: %8d ranges: %8d", regionNames[i], taintBytes[i], taintRanges[i]);
         totalBytes+=taintBytes[i];
-    LOGE_GC("Heap taint: %d total bytes in %d tainted ranges", totalBytes, taintRanges);
+        totalRanges+=taintRanges[i];
+    }
+    // VIP: FIXME: use sprintf to avoid hardcoding
+    // gnuplot line
+    LOGE_GC("Heap taint PLOT (bytes, ranges) TOTAL, ArrayObject, ArrayObject-taint, StaticField, InstField, InstField-data:# %d %d %d %d %d %d %d %d %d %d", 
+            totalBytes, totalRanges,
+            taintBytes[0], taintRanges[0],
+            taintBytes[1], taintRanges[1],
+            taintBytes[2], taintRanges[2],
+            taintBytes[3], taintRanges[3],
+            taintBytes[4], taintRanges[4]);
 }
 
 static void logTaintedRegion(int addr, int size, int regionType, const char* type) {
     taintBytes[regionType]+=size;
-    taintRanges++;
+    taintRanges[regionType]++;
 
-    char* name;
-    switch(regionType) {
-        case TAINTED_REGION_ARRAY:
-            name="ArrayObject";
-            break;
-        case TAINTED_REGION_TAG_ARRAY:
-            name="ArrayObject-taint";
-            break;
-        case TAINTED_REGION_SFIELD:
-            name="StaticField";
-            break;
-        case TAINTED_REGION_IFIELD:
-            name="InstField";
-            break;
-        case TAINTED_REGION_IFIELD_DATA:
-            name="InstField-data";
-    }
-    
-    LOGE_GC("Heap taint: addr: 0x%08x, size: %d, %s(%s)", (unsigned int)addr, size, name, type);
+    LOGE_GC("Heap taint internal: type: %-20s(%s) addr: 0x%08x size: %8d", regionNames[regionType], type, (unsigned int)addr, size);
 }
 
 static void checkTaintField(const Object* obj, Field* field) {
