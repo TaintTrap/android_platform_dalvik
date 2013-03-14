@@ -239,6 +239,55 @@ static void handleSigUsr2(void)
 }
 #endif
 
+#ifdef WITH_TAINT_TRACKING
+
+static inline void printTaintStats()
+{
+    LOGI("STATS [Interval] [Tainted / Total Tainted / Ops / Total Ops] # %d %d %d %d\n",
+         gDvm.statsTainted - gDvm.statsPrevTainted,
+         gDvm.statsTainted,
+         gDvm.statsTotal - gDvm.statsPrevTotal,
+         gDvm.statsTotal);
+    gDvm.statsPrevTainted = gDvm.statsTainted;
+    gDvm.statsPrevTotal   = gDvm.statsTotal;
+}
+
+static void handleSigTaintStats(void)
+{
+    dvmSuspendAllThreads(SUSPEND_FOR_DEBUG_EVENT);
+
+    /* LOGD("[IFLOW] Entry tainted = %d total = %d", gDvm.statsTainted, gDvm.statsTotal); */
+
+    Thread* thread;
+    /* LOGD("[IFLOW] Aggregating %d threads...", gDvm.nonDaemonThreadCount); */
+    for (thread = gDvm.threadList; thread != NULL; thread = thread->next) {
+        /* Aggregate thread counters */
+        gDvm.statsTainted   += thread->statsTainted;
+        gDvm.statsTotal     += thread->statsTotal;
+
+        /* LOGD("[IFLOW] [tid %d] tainted = %d total = %d threadTainted = %d threadTotal = %d", */
+        /*      thread->threadId, */
+        /*      gDvm.statsTainted, gDvm.statsTotal, */
+        /*      thread->statsTainted, thread->statsTotal); */
+
+        /* Reset thread counters */
+        thread->statsTainted = 0;
+        thread->statsTotal   = 0;
+    }
+    /* Skip stats until first tainted data shows up */
+    /*
+    if (gDvm.statsTainted == 0) {
+        gDvm.statsTotal = 0;
+    } else {
+        printTaintStats();
+    }
+    */
+    printTaintStats();
+
+    dvmResumeAllThreads(SUSPEND_FOR_DEBUG_EVENT);
+}
+#endif
+
 /*
  * Sleep in sigwait() until a signal arrives.
  */

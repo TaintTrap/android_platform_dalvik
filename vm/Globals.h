@@ -673,6 +673,26 @@ struct DvmGlobals {
 
     /* some RegisterMap statistics, useful during development */
     void*       registerMapStats;
+
+#ifdef WITH_TAINT_TRACKING
+    bool taintTarget;
+    /* Stats lock */
+    pthread_mutex_t statsLock;
+    /* Stats counters */
+    int  statsTotal;
+    int  statsPrevTotal;        /* for interval tracking */
+    int  statsTainted;
+    int  statsPrevTainted;      /* for interval tracking */
+    /* Detailed counters */
+    int  statsTotalReg;
+    int  statsTaintedReg;
+    int  statsTotalRegWide;
+    int  statsTaintedRegWide;
+    int  statsTotalArr;
+    int  statsTaintedArr;
+    int  statsTotalRet;
+    int  statsTaintedRet;
+#endif /* WITH_TAINT_TRACKING */
 };
 
 extern struct DvmGlobals gDvm;
