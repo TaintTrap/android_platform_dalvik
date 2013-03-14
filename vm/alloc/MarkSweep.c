@@ -58,59 +58,83 @@ static size_t objectSize(const Object *obj)
 }
 
 #ifdef TAINT_HEAP_LOG
-static int taintedBytes = 0;
-static int taintedRanges = 0;
+
+#define TAINTED_REGION_ARRAY		0
+#define TAINTED_REGION_TAG_ARRAY	1
+#define TAINTED_REGION_SFIELD		2
+#define TAINTED_REGION_IFIELD		3
+#define TAINTED_REGION_IFIELD_DATA	4
+#define NUM_TAINTED_REGION_TYPES	5
+
+static const char *regionNames[NUM_TAINTED_REGION_TYPES] = {
+    "ArrayObject",
+    "ArrayObject-taint",
+    "StaticField",
+    "InstField",
+    "InstField-data"
+};
+
+static int taintBytes[NUM_TAINTED_REGION_TYPES];
+static int taintRanges[NUM_TAINTED_REGION_TYPES];
 
 static void clearTaintStats() {
-    taintedBytes = 0;
-    taintedRanges = 0;
+    int i;
+    for (i=0; i<NUM_TAINTED_REGION_TYPES; i++) {
+        taintBytes[i]=0;
+        taintRanges[i]=0;
+    }
 }
 
 static void dumpTaintStats() {
-    LOGE_GC("Heap taint: %d tainted bytes in %d tainted ranges", taintedBytes, taintedRanges);
+    int totalBytes = 0;
+    int totalRanges = 0;
+
+    int i;
+    for (i=0; i<NUM_TAINTED_REGION_TYPES; i++) {
+        if (taintBytes[i])
+            LOGE_GC("Heap taint: type: %-20s bytes: %8d ranges: %8d", regionNames[i], taintBytes[i], taintRanges[i]);
+        totalBytes+=taintBytes[i];
+        totalRanges+=taintRanges[i];
+    }
+    // VIP: FIXME: use sprintf to avoid hardcoding
+    // gnuplot line
+    LOGE_GC("Heap taint PLOT (bytes, ranges) TOTAL, ArrayObject, ArrayObject-taint, StaticField, InstField, InstField-data:# %d %d %d %d %d %d %d %d %d %d", 
+            totalBytes, totalRanges,
+            taintBytes[0], taintRanges[0],
+            taintBytes[1], taintRanges[1],
+            taintBytes[2], taintRanges[2],
+            taintBytes[3], taintRanges[3],
+            taintBytes[4], taintRanges[4]);
 }
 
-static void logTaintedRegion(int addr, int size, char* kind, const char* type) {
-    LOGE_GC("Heap taint: addr: 0x%08x, size: %d, %s(%s)", (unsigned int)addr, size, kind, type);
-    taintedBytes+=size;
-    taintedRanges++;
+static void logTaintedRegion(int addr, int size, int regionType, const char* type) {
+    taintBytes[regionType]+=size;
+    taintRanges[regionType]++;
+
+    LOGE_GC("Heap taint internal: type: %-20s(%s) addr: 0x%08x size: %8d", regionNames[regionType], type, (unsigned int)addr, size);
 }
 
 static void checkTaintField(const Object* obj, Field* field) {
     if (field != NULL) {
         //LOGE("Checking field %s.%s", field->clazz->descriptor, field->name);
 
-        InstField* ifield;
-        StaticField* sfield;
-        bool isStatic = false;
-
-        if (dvmIsStaticField(field)) {
-            sfield = (StaticField*) field;
-            isStatic = true;
-        } else {
-	    ifield = (InstField*) field;
-        }
-
         u4 tag = TAINT_CLEAR;
-        if (isStatic) {
+        if (dvmIsStaticField(field)) {
+            StaticField* sfield = (StaticField*) field;
             tag = dvmGetStaticFieldTaint(sfield);
-        }
-        else {
-            if (field->signature[0] == 'J' || field->signature[0] == 'D') {  
+            if (tag != TAINT_CLEAR)
+                logTaintedRegion((int)field, sizeof(StaticField), TAINTED_REGION_SFIELD, field->signature);
+        } else {
+	    InstField* ifield = (InstField*) field;
+            if (field->signature[0] == 'J' || field->signature[0] == 'D')  
                 tag = dvmGetFieldTaintWide(obj, ifield->byteOffset);
-            }
-            else {
+            else
                 tag = dvmGetFieldTaint(obj, ifield->byteOffset);
+            
+            if (tag != TAINT_CLEAR) {
+                logTaintedRegion((int)field, sizeof(InstField), TAINTED_REGION_IFIELD, field->signature);  
+                logTaintedRegion((int)dvmFieldPtr(obj,ifield->byteOffset), sizeof(JValue), TAINTED_REGION_IFIELD_DATA, "JValue");
             }
-        }
-
-        if (tag != TAINT_CLEAR) {
-            if (isStatic) {
-                logTaintedRegion((int)field, sizeof(StaticField), "StaticField", field->signature);
-            }
-            else {
-                logTaintedRegion((int)field, sizeof(InstField), "InstField", field->signature);             
-            }                 
         }
     }
 }
@@ -476,7 +500,7 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
 #ifdef TAINT_HEAP_LOG
     // PJG: check for tainted ArrayObjects
     if (obj->taint) {
-        logTaintedRegion((int)obj, objectSize((Object *)obj), "ArrayObject", ((Object*)obj)->clazz->descriptor);
+        logTaintedRegion((int)obj, objectSize((Object *)obj), TAINTED_REGION_ARRAY, ((Object*)obj)->clazz->descriptor);
     }
 #endif /*TAINT_HEAP_LOG*/
 
@@ -486,7 +510,7 @@ static void scanArrayObject(const ArrayObject *obj, GcMarkContext *ctx)
         ArrayObject* tagArray = (ArrayObject*)(obj->taint);
 #ifdef TAINT_HEAP_LOG
         // PJG: log taint array as well?
-        logTaintedRegion((int)tagArray, objectSize((Object *)tagArray), "ArrayObject", ((Object*)obj)->clazz->descriptor);
+        logTaintedRegion((int)tagArray, objectSize((Object *)tagArray), TAINTED_REGION_TAG_ARRAY, ((Object*)tagArray)->clazz->descriptor);
 #endif /*TAINT_HEAP_LOG*/
         markObject((Object *)tagArray, ctx);
     }

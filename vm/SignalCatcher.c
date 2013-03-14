@@ -243,11 +243,13 @@ static void handleSigUsr2(void)
 
 static inline void printTaintStats()
 {
-    LOGI("STATS [Interval / Total Tainted / Total Ops] # %d %d %d\n",
+    LOGI("STATS [Interval] [Tainted / Total Tainted / Ops / Total Ops] # %d %d %d %d\n",
          gDvm.statsTainted - gDvm.statsPrevTainted,
-         gDvm.statsTainted, 
+         gDvm.statsTainted,
+         gDvm.statsTotal - gDvm.statsPrevTotal,
          gDvm.statsTotal);
     gDvm.statsPrevTainted = gDvm.statsTainted;
+    gDvm.statsPrevTotal   = gDvm.statsTotal;
 }
 
 static void handleSigTaintStats(void)
@@ -263,21 +265,24 @@ static void handleSigTaintStats(void)
         gDvm.statsTainted   += thread->statsTainted;
         gDvm.statsTotal     += thread->statsTotal;
 
-        LOGD("[IFLOW] [tid %d] tainted = %d total = %d threadTainted = %d threadTotal = %d", 
-             thread->threadId,
-             gDvm.statsTainted, gDvm.statsTotal,
-             thread->statsTainted, thread->statsTotal);
+        /* LOGD("[IFLOW] [tid %d] tainted = %d total = %d threadTainted = %d threadTotal = %d", */
+        /*      thread->threadId, */
+        /*      gDvm.statsTainted, gDvm.statsTotal, */
+        /*      thread->statsTainted, thread->statsTotal); */
 
         /* Reset thread counters */
         thread->statsTainted = 0;
         thread->statsTotal   = 0;
     }
     /* Skip stats until first tainted data shows up */
+    /*
     if (gDvm.statsTainted == 0) {
         gDvm.statsTotal = 0;
     } else {
         printTaintStats();
     }
+    */
+    printTaintStats();
 
     dvmResumeAllThreads(SUSPEND_FOR_DEBUG_EVENT);
 }

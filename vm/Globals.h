@@ -680,6 +680,7 @@ struct DvmGlobals {
     pthread_mutex_t statsLock;
     /* Stats counters */
     int  statsTotal;
+    int  statsPrevTotal;        /* for interval tracking */
     int  statsTainted;
     int  statsPrevTainted;      /* for interval tracking */
     /* Detailed counters */
