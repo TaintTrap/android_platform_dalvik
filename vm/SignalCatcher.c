@@ -366,6 +366,8 @@ loop:
 #ifdef WITH_TAINT_TRACKING
         case SIGALRM:
             handleSigTaintStats();
+            // VIP: leverage GC to gather stats on tainted bytes and ranges
+            handleSigUsr1();
             break;
 #endif
         default:
