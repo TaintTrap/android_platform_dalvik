@@ -1151,6 +1151,7 @@ static void blockSignals()
 bool dvmInitTaintStats()
 {
     gDvm.taintTarget         = false;
+    gDvm.forceGC             = false;
     /* Stats lock */
     dvmInitMutex(&gDvm.statsLock);
     /* Stats counters */

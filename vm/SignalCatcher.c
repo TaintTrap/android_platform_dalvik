@@ -216,7 +216,11 @@ static void handleSigQuit(void)
 static void handleSigUsr1(void)
 {
     LOGI("SIGUSR1 forcing GC (no HPROF)\n");
+    if (gDvm.forceGC == true)
+        LOGE("forceGC was already set! Concurrency bug?");
+    gDvm.forceGC = true;
     dvmCollectGarbage(false);
+    gDvm.forceGC = false;
 }
 
 #if defined(WITH_JIT) && defined(WITH_JIT_TUNING)

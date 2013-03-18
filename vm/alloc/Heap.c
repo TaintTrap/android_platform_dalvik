@@ -307,6 +307,8 @@ static void *tryMalloc(size_t size)
 //TODO: may want to grow a little bit more so that the amount of free
 //      space is equal to the old free space + the utilization slop for
 //      the new allocation.
+        // disable LOG for taintTarget as it has auto GC disabled
+        if (!gDvm.taintTarget)
         LOGI_HEAP("Grow heap (frag case) to "
                 "%zu.%03zuMB for %zu-byte allocation\n",
                 FRACTIONAL_MB(newHeapSize), size);
@@ -573,6 +575,10 @@ static void verifyRootsAndHeap(void)
  */
 void dvmCollectGarbageInternal(bool clearSoftRefs, GcReason reason)
 {
+#ifdef WITH_TAINT_TRACKING
+    // disable auto GC for target (explicit GC will be triggered via signal)
+    if (gDvm.taintTarget && !gDvm.forceGC) return;
+#endif /* WITH_TAINT_TRACKING */
     GcHeap *gcHeap = gDvm.gcHeap;
     u4 rootSuspend, rootSuspendTime, rootStart, rootEnd;
     u4 dirtySuspend, dirtyStart, dirtyEnd;

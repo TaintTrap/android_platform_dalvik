@@ -676,6 +676,7 @@ struct DvmGlobals {
 
 #ifdef WITH_TAINT_TRACKING
     bool taintTarget;
+    bool forceGC;
     /* Stats lock */
     pthread_mutex_t statsLock;
     /* Stats counters */
