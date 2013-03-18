@@ -671,9 +671,9 @@ static int dvmProcessOptions(int argc, const char* const argv[],
 {
     int i;
 
-    LOGV("VM options (%d):\n", argc);
+    LOGI("VM options (%d):\n", argc);
     for (i = 0; i < argc; i++)
-        LOGV("  %d: '%s'\n", i, argv[i]);
+        LOGI("  %d: '%s'\n", i, argv[i]);
 
     /*
      * Over-allocate AssertionControl array for convenience.  If allocated,
@@ -1150,6 +1150,8 @@ static void blockSignals()
 #ifdef WITH_TAINT_TRACKING
 bool dvmInitTaintStats()
 {
+    gDvm.taintTarget         = false;
+    gDvm.forceGC             = false;
     /* Stats lock */
     dvmInitMutex(&gDvm.statsLock);
     /* Stats counters */
@@ -1170,6 +1172,34 @@ bool dvmInitTaintStats()
     return true;
 }
 #endif
+
+/*
+#ifdef WITH_TAINT_TRACKING
+bool dvmLoadTaintTargets()
+{
+    char pathBuf[32];
+    char lineBuf[256];
+    char package[128];
+    FILE *fp;
+
+    snprintf(pathBuf, sizeof(pathBuf), "/data/app/%s", "taint-targets");
+    if ((fp = fopen(pathBuf, "rt")) == NULL) {
+        LOGE("TaintLog: Unable to open Taint Targets from %s. Missing file?\n", pathBuf);
+    }
+    gDvm.taintTargetsCount = 0;
+    while (fgets(lineBuf, sizeof(lineBuf) -1, fp) != NULL) {
+        sscanf(lineBuf, "%s\n", package);
+        LOGI("TaintLog: Target Taint Package: %s\n", package);
+        gDvm.taintTargets[gDvm.taintTargetsCount] = malloc(strlen(package) * sizeof(char));
+        strcpy(gDvm.taintTargets[gDvm.taintTargetsCount], package);
+        gDvm.taintTargetsCount++;
+
+    }
+    fclose(fp);
+    return true;
+}
+#endif
+*/
 
 /*
 #ifdef WITH_TAINT_TRACKING
@@ -1262,7 +1292,7 @@ int dvmStartup(int argc, const char* const argv[], bool ignoreUnrecognized,
     }
 
     /* mterp setup */
-    LOGV("Using executionMode %d\n", gDvm.executionMode);
+    LOGI("Using executionMode %d\n", gDvm.executionMode);
     dvmCheckAsmConstants();
 
     /*
