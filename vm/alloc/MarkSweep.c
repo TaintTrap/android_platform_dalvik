@@ -98,13 +98,14 @@ static void dumpTaintStats() {
     }
     // VIP: FIXME: use sprintf to avoid hardcoding
     // gnuplot line
-    LOGE_GC("Heap taint PLOT (bytes, ranges) TOTAL, ArrayObject, ArrayObject-taint, StaticField, InstField, InstField-data:# %d %d %d %d %d %d %d %d %d %d", 
-            totalBytes, totalRanges,
-            taintBytes[0], taintRanges[0],
-            taintBytes[1], taintRanges[1],
-            taintBytes[2], taintRanges[2],
-            taintBytes[3], taintRanges[3],
-            taintBytes[4], taintRanges[4]);
+    if (gDvm.taintTarget || totalBytes)
+        LOGE_GC("Heap taint PLOT (bytes, ranges) TOTAL, ArrayObject, ArrayObject-taint, StaticField, InstField, InstField-data:# %d %d %d %d %d %d %d %d %d %d %d %d",
+                totalBytes, totalRanges,
+                taintBytes[0], taintRanges[0],
+                taintBytes[1], taintRanges[1],
+                taintBytes[2], taintRanges[2],
+                taintBytes[3], taintRanges[3],
+                taintBytes[4], taintRanges[4]);
 }
 
 static void logTaintedRegion(int addr, int size, int regionType, const char* type) {
