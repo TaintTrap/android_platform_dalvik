@@ -477,6 +477,21 @@ static pid_t forkAndSpecializeCommon(const u4* args, bool isSystemServer)
         enableDebugFeatures(debugFlags);
 
         unsetSignalHandler();
+
+#ifdef WITH_TAINT_TRACKING
+        ALOGI("TaintLog: Zygote forkAndSpecializeCommon tid = %d uid = %d pid = %d\n", thread->systemTid, uid, pid);
+        if (!isSystemServer) {
+            bool taintTarget = (bool)args[5];
+            if (taintTarget) {
+                ALOGI("TaintLog: Zygote forkAndSpecializeCommon gDvm.taintTarget before = %d after = %d\n", gDvm.taintTarget, taintTarget);
+                gDvm.taintTarget = taintTarget;
+#ifdef __arm__
+                emu_hook_Zygote_forkAndSpecializeCommon((void *)thread->systemTid);
+#endif
+            }
+        }
+#endif
+
         gDvm.zygote = false;
         if (!dvmInitAfterZygote()) {
             ALOGE("error in post-zygote initialization");
