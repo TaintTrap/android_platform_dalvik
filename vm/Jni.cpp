@@ -2229,6 +2229,30 @@ static const char* GetStringUTFChars(JNIEnv* env, jstring jstr, jboolean* isCopy
         /* assume memory failure */
         dvmThrowOutOfMemoryError("native heap string alloc failed");
     }
+#ifdef WITH_TAINT_TRACKING
+    ArrayObject *value = NULL;
+    value = strObj->array();
+    if (value->taint.tag != TAINT_CLEAR) {
+        // ALOGV("bkpt: taint tag = %x\n", value->taint.tag);
+        // *(unsigned int *)0xbadcab1e = 1;
+        // dvmDumpThreadStack(dvmThreadSelf());
+        // dvmDumpThread(dvmThreadSelf(), false);
+        #ifdef __arm__
+        dvmFprintf(stderr, "JNI: entering GetStringUTFChars\n");
+        // gDvmEmu.tinfo.addr    = (uint32_t)value->contents;
+        uint32_t addr    = (uint32_t)newStr;
+        uint32_t tag     = value->taint.tag;
+        uint32_t length  = strObj->utfLength();
+        dvmFprintf(stderr, "bkpt: addr: %x tag: %x length: %d contents: %s\n",
+                   addr,
+                   tag,
+                   length,
+                   newStr
+                   );
+        emu_set_taint_array(addr, tag, length);
+        #endif
+    }
+#endif
     return newStr;
 }
 
@@ -2237,7 +2261,22 @@ static const char* GetStringUTFChars(JNIEnv* env, jstring jstr, jboolean* isCopy
  */
 static void ReleaseStringUTFChars(JNIEnv* env, jstring jstr, const char* utf) {
     ScopedJniThreadState ts(env);
+#ifdef WITH_TAINT_TRACKING
+#ifdef __arm__
+        // dvmFprintf(stderr, "JNI re-entry via emu, turning off emu");
+        StringObject* strObj = (StringObject*) dvmDecodeIndirectRef(ts.self(), jstr);
+        ArrayObject *value = strObj->array();
+        if (value->taint.tag != TAINT_CLEAR) {
+            dvmFprintf(stderr, "JNI: entering ReleaseStringUTFChars\n");
+            uint32_t addr = (uint32_t) utf;
+            uint32_t tag  = TAINT_CLEAR;
+            uint32_t length  = strObj->utfLength();
+            emu_set_taint_array(addr, tag, length);
+        }
+#endif
+#endif
     free((char*) utf);
+    // dvmFprintf(stderr, "JNI: leaving ReleaseStringUTFChars\n");
 }
 
 /*
