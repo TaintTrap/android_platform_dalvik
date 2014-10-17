@@ -286,7 +286,7 @@ ifeq ($(dvm_arch),arm)
 
   # Taint tracking with file propagation
   ifeq ($(WITH_TAINT_TRACKING),true)
-  		LOCAL_STATIC_LIBRARIES += libattr
+			LOCAL_STATIC_LIBRARIES += libattr
   endif
 endif
 
