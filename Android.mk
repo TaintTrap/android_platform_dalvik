@@ -30,6 +30,7 @@ subdirs := $(addprefix $(LOCAL_PATH)/,$(addsuffix /Android.mk, \
 # Taint propagation with file propagation
 ifeq ($(WITH_TAINT_TRACKING),true)
     subdirs += $(LOCAL_PATH)/libattr/Android.mk
+	LOCAL_C_INCLUDES += bionic/anemu
 endif
 
 include $(subdirs)

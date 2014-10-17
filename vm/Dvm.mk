@@ -247,6 +247,7 @@ LOCAL_C_INCLUDES += \
 # Taint tracking with file propagation
 ifeq ($(WITH_TAINT_TRACKING),true)
     LOCAL_C_INCLUDES += dalvik/libattr
+    LOCAL_C_INCLUDES += bionic/anemu
 endif
 
 MTERP_ARCH_KNOWN := false

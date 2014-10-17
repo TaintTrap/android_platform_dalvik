@@ -25,6 +25,7 @@ local_c_includes := \
 		dalvik \
 		dalvik/libdex \
 		dalvik/vm \
+		bionic/anemu \
 		$(JNI_H_INCLUDE)
 
 local_shared_libraries := \
