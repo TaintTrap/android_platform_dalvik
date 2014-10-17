@@ -1167,10 +1167,36 @@ void dvmCallJNIMethod(const u4* args, JValue* pResult, const Method* method, Thr
 
     JNIEnv* env = self->jniEnv;
     COMPUTE_STACK_SUM(self);
+
+    // the follow code can be used to force emulate a JNI call when
+    // input arguments are tainted.
+#ifdef WITH_TAINT_TRACKING
+    u4 tag = dvmTaintCheckJniMethod(oldArgs, method);
+    // TODO: notify emu of tainted addresses using emu_set_taint_array
+    // if (tag == TAINT_PASSWORD) {
+    if (tag == TAINT_CAMERA) {
+        ALOGI("JNI TAINTED! tag: %x emulating %p (%s.%s:%s):", tag, method->insns,
+              method->clazz->descriptor, method->name, method->shorty);
+
+        #ifdef __arm__
+        // EMU_MARKER_START;
+        #endif
+    }
+#endif
     dvmPlatformInvoke(env,
             (ClassObject*) staticMethodClass,
             method->jniArgInfo, method->insSize, modArgs, method->shorty,
             (void*) method->insns, pResult);
+#ifdef WITH_TAINT_TRACKING
+    // turn off emulation
+    // if (tag == TAINT_PASSWORD) {
+    if (tag == TAINT_CAMERA) {
+        #ifdef __arm__
+        // EMU_MARKER_STOP;
+        // ALOGI("JNI turned off emulation");
+        #endif
+    }
+#endif
     CHECK_STACK_SUM(self);
 
     dvmChangeStatus(self, oldStatus);
