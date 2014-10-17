@@ -48,6 +48,7 @@ LOCAL_MODULE := libdvm
 LOCAL_ARM_MODE := arm
 LOCAL_C_INCLUDES += bionic/anemu
 LOCAL_CFLAGS += $(target_smp_flag)
+# LOCAL_CFLAGS += -UNDEBUG -DDEBUG=1 -ULOG_NDEBUG -DLOG_INSTR
 
 # Define WITH_ADDRESS_SANITIZER to build an ASan-instrumented version of the
 # library in /system/lib/asan/libdvm.so.

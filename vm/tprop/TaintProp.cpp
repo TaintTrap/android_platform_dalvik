@@ -760,6 +760,8 @@ void dvmTaintPropJniMethod(const u4* args, JValue* pResult, const Method* method
 	int len;
 	char *inStr, *outStr;
 
+  // ALOGE("JNI malloc called");
+
 	len = strlen(method->clazz->descriptor) + 1 + strlen(method->name);
 	inStr = (char*) malloc(len+1);
 	strcpy(inStr, method->clazz->descriptor);

@@ -575,7 +575,10 @@ GOTO_TARGET(returnFromMethod)
         //methodClass = curMethod->clazz;
         methodClassDex = curMethod->clazz->pDvmDex;
         pc = saveArea->savedPc;
-        ILOGD("> (return to %s.%s %s)", curMethod->clazz->descriptor,
+
+        // TODO: change to ALOGI
+        // this shows function return
+        CLOGI("> (return to %s.%s %s)", curMethod->clazz->descriptor,
             curMethod->name, curMethod->shorty);
 
         /* use FINISH on the caller's invoke instruction */
@@ -907,7 +910,9 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
         StackSaveArea* newSaveArea;
         u4* newFp;
 
-        ILOGV("> %s%s.%s %s",
+        // TODO: change to ALOGI
+        // this shows function calls including native
+        CLOGI("> %s%s.%s %s",
             dvmIsNativeMethod(methodToCall) ? "(NATIVE) " : "",
             methodToCall->clazz->descriptor, methodToCall->name,
             methodToCall->shorty);
@@ -1053,7 +1058,10 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
             }
 
             ILOGD("> retval=0x%llx (leaving native)", retval.j);
-            ILOGD("> (return from native %s.%s to %s.%s %s)",
+
+            // TODO: change to ALOGI
+            // this shows native function returns
+            CLOGI("> (return from native %s.%s to %s.%s %s)",
                 methodToCall->clazz->descriptor, methodToCall->name,
                 curMethod->clazz->descriptor, curMethod->name,
                 curMethod->shorty);

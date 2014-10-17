@@ -21,6 +21,8 @@
 #include <math.h>                   // needed for fmod, fmodf
 #include "mterp/common/FindInterface.h"
 
+// #define LOG_NDEBUG 0
+
 /*
  * Configuration defines.  These affect the C implementations, i.e. the
  * portable interpreter(s) and C stubs.
@@ -109,6 +111,12 @@
         pc += _offset;                                                      \
         EXPORT_EXTRA_PC();                                                  \
     } while (false)
+#endif
+
+#ifdef LOG_CALLS
+# define CLOGI(...) ALOGI(__VA_ARGS__)
+#else
+# define CLOGI(...) ((void)0)
 #endif
 
 /*
