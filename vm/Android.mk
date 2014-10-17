@@ -45,6 +45,7 @@ include $(LOCAL_PATH)/ReconfigureDvm.mk
 # Overwrite default settings
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libdvm
+LOCAL_ARM_MODE := arm
 LOCAL_C_INCLUDES += bionic/anemu
 LOCAL_CFLAGS += $(target_smp_flag)
 

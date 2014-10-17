@@ -95,7 +95,7 @@ LOCAL_SRC_FILES := \
 	Atomic.cpp.arm \
 	AtomicCache.cpp \
 	BitVector.cpp.arm \
-	CheckJni.cpp \
+	CheckJni.cpp.arm \
 	Ddm.cpp \
 	Debugger.cpp \
 	DvmDex.cpp \
@@ -107,10 +107,10 @@ LOCAL_SRC_FILES := \
 	InlineNative.cpp.arm \
 	Inlines.cpp \
 	Intern.cpp \
-	Jni.cpp \
+	Jni.cpp.arm \
 	JarFile.cpp \
 	LinearAlloc.cpp \
-	Misc.cpp \
+	Misc.cpp.arm \
 	Native.cpp \
 	PointerSet.cpp \
 	Profile.cpp \
@@ -119,7 +119,7 @@ LOCAL_SRC_FILES := \
 	SignalCatcher.cpp \
 	StdioConverter.cpp \
 	Sync.cpp \
-	Thread.cpp \
+	Thread.cpp.arm \
 	UtfString.cpp \
 	alloc/Alloc.cpp \
 	alloc/CardTable.cpp \
@@ -183,7 +183,7 @@ LOCAL_SRC_FILES := \
 	native/org_apache_harmony_dalvik_ddmc_DdmVmInternal.cpp \
 	native/sun_misc_Unsafe.cpp \
 	oo/AccessCheck.cpp \
-	oo/Array.cpp \
+	oo/Array.cpp.arm \
 	oo/Class.cpp \
 	oo/Object.cpp \
 	oo/Resolve.cpp \
@@ -253,6 +253,7 @@ endif
 MTERP_ARCH_KNOWN := false
 
 ifeq ($(dvm_arch),arm)
+	LOCAL_ARM_MODE := arm
   #dvm_arch_variant := armv7-a
   #LOCAL_CFLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=vfp
   #LOCAL_CFLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=neon
