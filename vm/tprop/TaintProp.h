@@ -12,4 +12,7 @@ void dvmTaintPropJniShutdown();
 /* Main propagation */
 void dvmTaintPropJniMethod(const u4* args, JValue* pResult, const Method* method);
 
+/* Check if JNI input arguments are tainted */
+u4 dvmTaintCheckJniMethod(const u4* args, const Method* method);
+
 #endif

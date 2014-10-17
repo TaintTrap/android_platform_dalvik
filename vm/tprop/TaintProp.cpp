@@ -663,6 +663,64 @@ u4 propMethodProfile(const u4* args, const Method* method)
     return rtaint;
 }
 
+/* Check if JNI input arguments are tainted */
+u4 dvmTaintCheckJniMethod(const u4* args, const Method* method)
+{
+    const DexProto* proto = &method->prototype;
+    DexParameterIterator pIterator;
+    int nParams = dexProtoGetParameterCount(proto);
+    int pStart = (dvmIsStaticMethod(method)?0:1); /* index where params start */
+
+    /* Consider 3 arguments. [x] indicates return taint index
+     * 0 1 2 [3] 4 5 6
+     */
+    int nArgs = method->insSize;
+    u4* rtaint = (u4*) &args[nArgs]; /* The return taint value */
+    int tStart = nArgs+1; /* index of args[] where taint values start */
+    int tEnd   = nArgs*2; /* index of args[] where taint values end */
+    u4	tag = TAINT_CLEAR;
+    int i;
+
+    /* Union the taint tags, this includes object ref tags
+     * - we don't need to worry about static vs. not static, because getting
+     *	 the taint tag on the "this" object reference is a good
+     * - we don't need to worry about wide registers, because the stack
+     *	 interleaving of taint tags makes it transparent
+     */
+    for (i = tStart; i <= tEnd; i++) {
+        tag |= args[i];
+    }
+
+    /* If not static, pull any taint from the "this" object */
+    if (!dvmIsStaticMethod(method)) {
+        tag |= getObjectTaint((Object*)args[0], method->clazz->descriptor);
+    }
+
+    /* Union taint from Objects we care about */
+    dexParameterIteratorInit(&pIterator, proto);
+    for (i=pStart; ; i++) {
+        const char* desc = dexParameterIteratorNextDescriptor(&pIterator);
+
+        if (desc == NULL) {
+            break;
+        }
+
+        if (desc[0] == '[' || desc[0] == 'L') {
+            tag |= getObjectTaint((Object*) args[i], desc);
+        }
+
+        if (desc[0] == 'J' || desc[0] == 'D') {
+            /* wide argument, increment index one more */
+            i++;
+        }
+    }
+
+    /* Look at the taint policy profiles (may have return taint) */
+    tag |= propMethodProfile(args, method);
+
+    return tag;
+}
+
 /* Used to propagate taint for JNI methods
  * Two types of propagation:
  *  1) simple conservative propagation based on parameters
