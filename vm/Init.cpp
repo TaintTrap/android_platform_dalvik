@@ -1122,10 +1122,12 @@ static void setCommandLineDefaults()
     gDvm.executionMode = kExecutionModeInterpFast;
 #if defined(WITH_TAINT_TRACKING)
 #if defined(WITH_TAINT_FAST)
-    gDvm.executionMode = kExecutionModeInterpFast;
-#else
+    //gDvm.executionMode = kExecutionModeInterpFast;
+    //#else
+    //TaintTrap: force portable interp (easier debug + no JIT integration yet)
     gDvm.executionMode = kExecutionModeInterpPortable;
 #endif /*WITH_TAINT_FAST*/
+#endif
 #if defined(TAINT_IS_86)
     gDvm.executionMode = kExecutionModeInterpPortable;
 #endif /*TAINT_IS_X86*/
