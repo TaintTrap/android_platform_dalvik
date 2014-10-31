@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PassJNI</string>
+    <string name="stash">Stash Password</string>
+    <string name="process">Process Password</string>
+    <string name="malloc">Malloc Native</string>
+    <string name="matrix">Matrix Multiply</string>
+    <string name="matrixBasic">Matrix Basic</string>
+    <string name="taintedInt">Tainted Int</string>
+</resources>

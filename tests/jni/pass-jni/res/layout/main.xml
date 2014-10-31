@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+ 
+    <Button
+        android:id="@+id/buttonStash"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stash" />
+
+    <Button
+        android:id="@+id/buttonProcess"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/process" />
+
+    <Button
+        android:id="@+id/buttonMalloc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/malloc" />
+
+    <Button
+        android:id="@+id/buttonMatrix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/matrix" />
+
+    <Button
+        android:id="@+id/buttonMatrixBasic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/matrixBasic" />
+
+    <Button
+        android:id="@+id/buttonTaintedInt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/taintedInt" />
+</LinearLayout>
