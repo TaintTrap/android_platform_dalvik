@@ -1127,12 +1127,12 @@ static void setCommandLineDefaults()
     //TaintTrap: force portable interp (easier debug + no JIT integration yet)
     gDvm.executionMode = kExecutionModeInterpPortable;
 #endif /*WITH_TAINT_FAST*/
-#endif
+#endif /*WITH_TAINT_TRACKING*/
 #if defined(TAINT_IS_86)
     gDvm.executionMode = kExecutionModeInterpPortable;
 #endif /*TAINT_IS_X86*/
-#endif /*WITH_TAINT_TRACKING*/
-#endif
+#endif /*WITH_JIT*/
+
 
     /*
      * SMP support is a compile-time define, but we may want to have
